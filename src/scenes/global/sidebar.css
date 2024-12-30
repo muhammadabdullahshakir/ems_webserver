@@ -1,0 +1,23 @@
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px; /* Adjust width as needed */
+    height: 100vh;
+    background-color: #fff; /* Or your preferred color */
+    overflow-y: auto;
+    /* Other styles for your sidebar */
+  }
+  
+  .dashboard-container {
+    margin-left: 250px; /* Same width as the sidebar */
+    padding: 20px;
+    /* Other styles for your dashboard container */
+  }
+  
+  .content {
+    overflow-y: auto;
+    height: calc(100vh - 60px); /* Adjust height according to your header */
+  }
+  

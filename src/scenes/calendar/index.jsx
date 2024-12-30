@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { formatDate } from '@fullcalendar/core';
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 import FullCalendar from '@fullcalendar/react';
+import { ColorContext } from "../../components/ColorContext";
 import {
   Box,
   List,
@@ -20,6 +21,17 @@ const Calendar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [currentEvents, setCurrentEvents] = useState([]);
+
+  const { selectedColor } = useContext(ColorContext);
+
+
+// Define the color options
+const colorOptions = {
+  blue1000: "linear-gradient(195deg, rgb(73, 163, 241), rgb(26, 115, 232))",
+  orange1000: "linear-gradient(195deg, rgb(255, 145, 52), rgb(255, 105, 0))",
+  red1000: "linear-gradient(195deg, rgb(242, 85, 96), rgb(212, 41, 56))",
+};
+
 
   const handleDateClick = (selected) => {
     const title = prompt("Please enter a new title for your event");
@@ -65,7 +77,7 @@ const Calendar = () => {
               <ListItem
                 key={event.id}
                 sx={{
-                  backgroundColor: colors.greenAccent[500],
+                  background:colorOptions[selectedColor] ,
                   margin: "10px 0",
                   borderRadius: "2px",
                 }}

@@ -60,6 +60,44 @@ export const tokens = (mode) => ({
           800: "#2a2d64",
           900: "#151632",
         },
+        orange: {
+          100: "#ffebd1", // Light Orange
+          200: "#ffcc99", // Soft Orange
+          300: "#ff9c33", // Bright Orange
+          400: "#ff7f00", // Orange
+          500: "#ff6600", // Deep Orange
+          600: "#e65c00", // Dark Orange
+          700: "#cc5200", // Burnt Orange
+          800: "#b34700", // Darker Orange
+          900: "#993d00", // Very Dark Orange
+          1000: "linear-gradient(195deg, rgb(255, 145, 52), rgb(255, 105, 0))",  // Orange gradient
+
+        },
+        blue: {
+          100: "#151632", // Very Dark Blue
+          200: "#2a2d64", // Dark Blue
+          300: "#3e4396", // Soft Blue
+          400: "#535ac8", // Light Blue
+          500: "#6870fa", // Vivid Blue
+          600: "#868dfb", // Light Vivid Blue
+          700: "#a4a9fc", // Very Light Blue
+          800: "#c3c6fd", // Pale Blue
+          900: "#e1e2fe", // Very Pale Blue
+          1000: "linear-gradient(195deg, rgb(73, 163, 241), rgb(26, 115, 232))",
+        },
+        red: {
+          100: "#f5d1d1", // Light Red
+          200: "#f2a1a1", // Soft Red
+          300: "#f05d5d", // Coral Red
+          400: "#e62e2e", // Bright Red
+          500: "#d40000", // Red
+          600: "#b30000", // Dark Red
+          700: "#990000", // Blood Red
+          800: "#7f0000", // Deep Red
+          900: "#660000", // Darker Red
+          1000: "linear-gradient(195deg, rgb(242, 85, 96), rgb(212, 41, 56))",
+
+        },
       }
     : {
         grey: {
@@ -117,7 +155,45 @@ export const tokens = (mode) => ({
           800: "#c3c6fd",
           900: "#e1e2fe",
         },
+        orange: {
+          100: "#ffebd1", // Light Orange
+          200: "#ffcc99", // Soft Orange
+          300: "#ff9c33", // Bright Orange
+          400: "#ff7f00", // Orange
+          500: "#ff6600", // Deep Orange
+          600: "#e65c00", // Dark Orange
+          700: "#cc5200", // Burnt Orange
+          800: "#b34700", // Darker Orange
+          900: "#993d00", // Very Dark Orange
+          1000: "linear-gradient(195deg, rgb(255, 145, 52), rgb(255, 105, 0))",
+        },
+        blue: {
+          100: "#151632", // Very Dark Blue
+          200: "#2a2d64", // Dark Blue
+          300: "#3e4396", // Soft Blue
+          400: "#535ac8", // Light Blue
+          500: "#6870fa", // Vivid Blue
+          600: "#868dfb", // Light Vivid Blue
+          700: "#a4a9fc", // Very Light Blue
+          800: "#c3c6fd", // Pale Blue
+          900: "#e1e2fe", // Very Pale Blue
+          1000: "linear-gradient(195deg, rgb(73, 163, 241), rgb(26, 115, 232))",
+        },
+        red: {
+          100: "#f5d1d1", // Light Red
+          200: "#f2a1a1", // Soft Red
+          300: "#f05d5d", // Coral Red
+          400: "#e62e2e", // Bright Red
+          500: "#d40000", // Red
+          600: "#b30000", // Dark Red
+          700: "#990000", // Blood Red
+          800: "#7f0000", // Deep Red
+          900: "#660000", // Darker Red
+          1000: "linear-gradient(195deg, rgb(242, 85, 96), rgb(212, 41, 56))",
+
+        },
       }),
+
 });
 
 // mui theme settings

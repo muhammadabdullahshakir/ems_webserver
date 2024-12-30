@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material/styles';
 
 const TimeRangeDropdown = ({ onChange, selectedValue }) => {
   const theme = useTheme();
-  const colors = theme.palette;
+  // const colors = theme.palette;
 
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -15,7 +15,7 @@ const TimeRangeDropdown = ({ onChange, selectedValue }) => {
           padding: '8px',
           fontSize: '16px',
           backgroundColor: "#4cceac", // Adjust this according to your theme
-          color: colors.grey[100], // White text color
+          color: "#808080", // White text color
           border: 'none',
           borderRadius: '4px',
           cursor: 'pointer'

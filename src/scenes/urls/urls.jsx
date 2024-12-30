@@ -1,7 +1,7 @@
 import { Api } from "@mui/icons-material";
 
 const API_Base_url =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+  process.env.REACT_APP_API_BASE_URL || "https://ems-server-530056698.us-central1.run.app";//"http://localhost:8000";
 
 const urls = {
   deleteUser: (userId) => `${API_Base_url}/delete_user/${userId}/`, //deleting user

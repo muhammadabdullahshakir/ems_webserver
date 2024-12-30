@@ -27,12 +27,12 @@ const urls = {
   unassignedGateway: `${API_Base_url}/get_unassigned_gateways/`, //fetch un assigneed gateway later assign to any user
   assignGateway: `${API_Base_url}/assign_gateways_to_user/`, //assigning gateway to user
   userGateways: `${API_Base_url}/fetch_gateways_of_user/`, //fetching the gateway of user with whole data and empty coms
-  userlistGateways: `${API_Base_url}/fetch_gateways_of_usersList`, //user gateway dropdown in admin dashboard
+  userlistGateways: `${API_Base_url}/fetch_gateways_of_usersList/`, //user gateway dropdown in admin dashboard
 
   updateGateway: `${API_Base_url}/update_gateway/`, //only update the gateway status to deployed when user deploy it
   fetchDeployedGateways: `${API_Base_url}/fetch_deployed_gateways_of_user/`, //fetches only those status are deployed
   totalGatewaysCount: `${API_Base_url}/get_total_gateways/`, //total gateways count
-  deployedGatewaysCount: `${API_Base_url}/get_deployed_gateways`, //deployed gateway count
+  deployedGatewaysCount: `${API_Base_url}/get_deployed_gateways/`, //deployed gateway count
   userAlotedGatewaysCount: `${API_Base_url}/get_user_aloted_gateways/`, // gateways aloted to user in admin dashboard dropdown
   fetch_Metadata: (gateway_name) =>
     `${API_Base_url}/fetch_metadata/?gateway=${gateway_name}`, //getting whole data and show in deployed gateway with coms

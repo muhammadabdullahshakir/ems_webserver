@@ -227,9 +227,9 @@ const Sidebar = ({ unassignedGateways }) => {
                   >
                     {user.firstname} {user.lastname}
                   </Typography>
-                  <Typography variant="h5" color={colors.greenAccent[500]}>
+                  {/* <Typography variant="h5" color={colors.greenAccent[500]}>
                     {user.role}
-                  </Typography>
+                  </Typography> */}
                 </Box>
               </Box>
             )}
@@ -295,7 +295,7 @@ const Sidebar = ({ unassignedGateways }) => {
                   selected={selected}
                   setSelected={setSelected}
                 />
-                <Item
+                {/* <Item
                   title="FAQ Page"
                   to="/faq"
                   icon={<HelpOutlineOutlinedIcon sx={{ marginTop: "15px" }} />}
@@ -308,7 +308,7 @@ const Sidebar = ({ unassignedGateways }) => {
                   icon={<DevicesIcon sx={{ marginTop: "15px" }} />}
                   selected={selected}
                   setSelected={setSelected}
-                />
+                /> */}
               </>
             )}
             {user.role == "user" && (
@@ -372,13 +372,13 @@ const Sidebar = ({ unassignedGateways }) => {
                   selected={selected}
                   setSelected={setSelected}
                 />
-                <Item
+                {/* <Item
                   title="FAQ Page"
                   to="/faq"
                   icon={<HelpOutlineOutlinedIcon sx={{ marginTop: "15px" }} />}
                   selected={selected}
                   setSelected={setSelected}
-                />
+                /> */}
               </>
             )}
           </Box>

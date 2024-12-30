@@ -16,14 +16,14 @@ import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-export const colorContext = createContext();
 import { ColorContext } from "../../components/ColorContext";
-
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import urls from "../urls/urls";
 
+
+export const colorContext = createContext();
 const Topbar = ({ onColorChange }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);

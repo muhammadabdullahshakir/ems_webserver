@@ -17,9 +17,10 @@ import defaultProfileImage from "../../scenes/assets/profile.jpg";
 import ManageHistoryIcon from "@mui/icons-material/ManageHistory";
 import "./sidebar.css";
 import { ColorContext } from "../../components/ColorContext";
-
+import { useNavigate } from "react-router-dom";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
+
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { selectedColor } = useContext(ColorContext);
@@ -56,6 +57,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 };
 
 const Sidebar = ({ unassignedGateways }) => {
+  const navigate = useNavigate();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);

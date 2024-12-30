@@ -43,41 +43,44 @@ const HardwareTable = () => {
     config: false,
   });
 
-  useEffect(() => {
-    const fetchAllHardware = async () => {
-      try {
-        const response = await axios.get(urls.totalGateways);
-        const transformedHardware = response.data.Gateways.map((item) => {
-          let deployStatus = "Warehouse"; 
-          
-          if (item.deploy_status === "user_aloted") {
-            deployStatus = "Assigned to User";
-          } else if (item.deploy_status === "Warehouse") {
-            deployStatus = "Warehouse";
-          } else if (item.deploy_status === "deployed") {
-            deployStatus = "Deployed to User";
-          }
-  
+  const fetchAllHardware = async () => {
+    try {
+      const response = await axios.get(urls.totalGateways);
+      const transformedHardware = response.data.Gateways.map((item) => {
+        let deployStatus = "Warehouse"; 
         
-          const status = item.status;  
-  
-          return {
-            id: item.G_id, 
-            gateway_name: item.gateway_name,
-            mac_address: item.mac_address,
-            status: status, 
-            deploy_status: deployStatus, 
-            config: item.config,
-          };
-          
-        });
-  
-        setGateways(transformedHardware);  
-      } catch (error) {
-        console.error("Error fetching gateway:", error);
-      }
-    };
-  
+        if (item.deploy_status === "user_aloted") {
+          deployStatus = "Assigned to User";
+        } else if (item.deploy_status === "Warehouse") {
+          deployStatus = "Warehouse";
+        } else if (item.deploy_status === "deployed") {
+          deployStatus = "Deployed to User";
+        }
+
+      
+        const status = item.status;  
+
+        return {
+          id: item.G_id, 
+          gateway_name: item.gateway_name,
+          mac_address: item.mac_address,
+          status: status, 
+          deploy_status: deployStatus, 
+          config: item.config,
+        };
+        
+      });
+
+      setGateways(transformedHardware);  
+    } catch (error) {
+      console.error("Error fetching gateway:", error);
+    }
+  };
+
+
+
+
+  useEffect(() => {
     fetchAllHardware();
     const intervalId = setInterval(fetchAllHardware, 500);
     return () => clearInterval(intervalId);

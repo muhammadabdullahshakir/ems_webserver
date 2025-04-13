@@ -1,9 +1,9 @@
 {
-  "short_name": "EMS",
-  "name": "EMS Dashboard",
+  "short_name": "CoreUI-React",
+  "name": "CoreUI-React sample",
   "icons": [
     {
-      "src": "./022.png",
+      "src": "./assets/img/favicon.png",
       "sizes": "100x100",
       "type": "image/png"
     }

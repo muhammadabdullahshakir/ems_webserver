@@ -1,7 +1,0 @@
-echo "# ems_webserver" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M master
-git remote add origin https://github.com/Misbahhassan08/ems_webserver.git
-git push -u origin master

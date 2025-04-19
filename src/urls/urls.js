@@ -15,7 +15,7 @@ const urls = {
   userData: (userId) => `${API_Base_url}/fetch_users/${userId}/`,
   fetchUser: `${API_Base_url}/fetch_users/`, //list of user shows to admin
   userCount: `${API_Base_url}/user_count/`, //total user count
-  createUser: `${API_Base_url}/create_user/`, //create user
+  createUser: `${API_Base_url}/create_user/${getUserIdFromLocalStorage()}/`, //create user
   createAdmin: `${API_Base_url}/create_admin/`, //create user
 
   apiPowerData: `${API_Base_url}/api/power-data/`, //create user
@@ -25,6 +25,9 @@ const urls = {
   createProject: `${API_Base_url}/create_project_manager/`, //project creation
   deleteMultiplleUser: `${API_Base_url}/delete_selected_user/`, //deleting multiple user
   totalProject: `${API_Base_url}/total_project/`, //total project count
+  usertotalProject: `${API_Base_url}/get_user_project_count/${getUserIdFromLocalStorage()}/`, //total project count
+  get_deployed_gateway_count: `${API_Base_url}/get_deployed_gateway_count/?user_id=${getUserIdFromLocalStorage()}`, // total project count
+
   fetchActiveProject: `${API_Base_url}/active_project/`, //active project count
   logout: `${API_Base_url}/logout/`, 
   fetchBoxList: `${API_Base_url}/get_boxes/`, //fetching boxes list that are not usedd yet
@@ -41,7 +44,7 @@ const urls = {
   updateGateway: `${API_Base_url}/update_gateway/`, //only update the gateway status to deployed when user deploy it
   fetchDeployedGateways: `${API_Base_url}/fetch_deployed_gateways_of_user/`, //fetches only those status are deployed
   fetchTotalUserGateways: `${API_Base_url}/get_total_gateways_user/`, //fetches only those status are deployed
-
+  Get_superAdmin_Project_Count: `${API_Base_url}/Get_superAdmin_Project_Count/`, 
   totalGatewaysCount: `${API_Base_url}/get_total_gateways/`, //total gateways count
   deployedGatewaysCount: `${API_Base_url}/get_deployed_gateways/`, //deployed gateway count
   userAlotedGatewaysCount: `${API_Base_url}/get_user_aloted_gateways/`, // gateways aloted to user in admin dashboard dropdown
@@ -58,6 +61,8 @@ const urls = {
   adminDetailsSuperAdmin: `${API_Base_url}/admin_detail_superadmin/`,
   adminDetails: `${API_Base_url}/admin_detail/`,
   CreateOrUpdateSubscription: `${API_Base_url}/create_or_update_subscription/`,
+  Invoice: `${API_Base_url}/invoice/`,
+
 
   getAnalyzerValuesByGateway: (gateway_name) =>
     `${API_Base_url}/gateway/${gateway_name}/analyzers/`, //analyzers value for animation and for analyzer box dialog

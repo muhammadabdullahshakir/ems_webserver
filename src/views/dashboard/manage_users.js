@@ -26,6 +26,8 @@ import {
   backdropClasses,
 } from '@mui/material'
 import { ColorModeContext } from '../theme/ThemeContext'
+import { getUserIdFromLocalStorage } from '../../data/localStorage';
+
 
 const ManageUsers = () => {
   const navigate = useNavigate()
@@ -35,35 +37,42 @@ const ManageUsers = () => {
   const [openDialog, setOpenDialog] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchQuery, setSearchQuery] = useState('');
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
   const theme = useTheme()
 
   // Fetch Users from API
   const fetchUsers = async () => {
     try {
+      const loggedInUserId = localStorage.getItem('user_id') // Get user_id from localStorage
+  
       const response = await axios.get(urls.fetchUser)
       console.log('Response data:', response.data)
-
-      const transformedUsers = response.data.map((user) => ({
-        id: user.user_id,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email,
-        contact: user.contact,
-        address: user.adress,
-        zip_code: user.zip_code,
-        role: user.role,
-        image: user.image 
-      }))
-
-      
-
+  
+      // Filter users: only show users with role "user" AND created_by = loggedInUserId
+      const transformedUsers = response.data
+        .filter(user => user.role === 'user' && String(user.created_by_id) === String(getUserIdFromLocalStorage()))
+        .map((user) => ({
+          id: user.user_id,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          email: user.email,
+          contact: user.contact,
+          address: user.adress,
+          zip_code: user.zip_code,
+          role: user.role,
+          image: user.image 
+        }))
+  
       setUsers(transformedUsers)
-      console.log('Updated Users State (Including Admins):', transformedUsers)
+      console.log('Filtered Users (Only users created by this admin):', transformedUsers)
     } catch (error) {
       console.error('Error fetching users:', error)
     }
   }
-
+  
   
 
   useEffect(() => {
@@ -86,6 +95,7 @@ const ManageUsers = () => {
     )
   }
 
+  
   //  Function to handle "Select All" checkbox
   const handleSelectAll = () => {
     setSelectedUsers(selectedUsers.length === users.length ? [] : users.map((user) => user.id))
@@ -106,7 +116,7 @@ const ManageUsers = () => {
   // Fixed Delete API Call
   const handleConfirmDelete = async () => {
     try {
-      await axios.post(`${urls.deleteUser(userToDelete)}/`)
+      await axios.post(`${urls.deleteUser(userToDelete)}`)
       setUsers((prevUsers) => prevUsers.filter((user) => String(user.id) !== String(userToDelete)))
       setOpenDialog(false)
     } catch (error) {
@@ -197,36 +207,27 @@ const ManageUsers = () => {
         {(() => {
           const lowerSearchTerm = searchTerm.toLowerCase()
 
-          // Sorting: Moves matching results to the top
-          const filteredUsers = [...users].sort((a, b) => {
-            const aMatch =
-              a.firstname.toLowerCase().includes(lowerSearchTerm) ||
-              a.lastname.toLowerCase().includes(lowerSearchTerm) ||
-              a.email.toLowerCase().includes(lowerSearchTerm) ||
-              a.contact.toLowerCase().includes(lowerSearchTerm)
+          //code
+          const filteredUsers = users.filter((user) => {
+            return (
+              user.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              user.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              user.contact.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          });
+          
 
-            const bMatch =
-              b.firstname.toLowerCase().includes(lowerSearchTerm) ||
-              b.lastname.toLowerCase().includes(lowerSearchTerm) ||
-              b.email.toLowerCase().includes(lowerSearchTerm) ||
-              b.contact.toLowerCase().includes(lowerSearchTerm)
-
-            return bMatch - aMatch // Moves matching results to the top
-          })
+     
           
           return (
             <TableContainer component={Paper} sx={{ marginTop: 2 }}>
               <Table>
                 <TableHead>
                   <TableRow sx={{ background: theme.palette.background.paper }}>
-                    <TableCell>
-                      {/* "Select All" Checkbox */}
-                      <Checkbox
-                        checked={selectedUsers.length === users.length && users.length > 0}
-                        onChange={handleSelectAll}
-                        color="primary"
-                      />
-                    </TableCell>
+                   
+                    <TableCell style={{ fontWeight: 'bold' }}>Sr No</TableCell>
+
                     <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>First Name</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Last Name</TableCell>
@@ -241,13 +242,9 @@ const ManageUsers = () => {
                     filteredUsers.map((user, index) => (
                       <TableRow key={user.id || index}>
                         {/* Individual Checkbox */}
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedUsers.includes(user.id)}
-                            onChange={() => handleSelectUser(user.id)}
-                            color="primary"
-                          />
-                        </TableCell>
+                        
+                        <TableCell>{index +1}</TableCell>
+
                         <TableCell>{user.id}</TableCell>
                         <TableCell>{user.firstname}</TableCell>
                         <TableCell>{user.lastname}</TableCell>

@@ -10,6 +10,11 @@ import DialogActions from '@mui/material/DialogActions';
 import CloseIcon from '@mui/icons-material/Close';
 import { Download, DownloadOutlined } from '@mui/icons-material';
 import { Bold } from 'lucide-react';
+import urls from '../../urls/urls';
+import { getUserIdFromLocalStorage } from '../../data/localStorage';
+import axios from 'axios'
+
+
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialogContent-root': {
@@ -57,15 +62,36 @@ const invoices = () => {
     setOpen(true); // Open the dialog
   };
 
+  const handleClickOpenUser = (invoice) => {
+    setSelectedInvoices(invoice); // Save clicked data
+    setOpen(true); // Open the dialog
+  };
+
   const [subscriptions, setSubscriptions] = useState([]);
+  const [invoices, setInvoice] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
+  const [selectedInvoices, setSelectedInvoices] = useState(null);
+    const [firstname, setFirstname] = useState('')
+    const [lastname, setLastname] = useState('')
+    const [email, setEmail] = useState('')
+    const loggedInUser = JSON.parse(localStorage.getItem("user"));
+
+    const [image, setImage] = useState('')
+      const [contact, setContact] = useState('')
+    const [zipCode, setZipCode] = useState('')
+    const [address, setAddress] = useState('')
+    const userId = loggedInUser?.user_id;
+
+    const [userData, setUserData] = useState('')
+
 
   useEffect(() => {
     // Fetch data from the backend API
     const fetchSubscriptions = async () => {
       try {
-        const response = await fetch("http://192.168.47.26:8000/create_or_update_subscription/");
+        const response = await fetch(urls.CreateOrUpdateSubscription);
         const data = await response.json();
         if (response.ok) {
           setSubscriptions(data); // Assuming data is an array of subscriptions
@@ -81,6 +107,63 @@ const invoices = () => {
 
     fetchSubscriptions();
   }, []);
+
+  useEffect(() => {
+    // Fetch data from the backend API
+    const fetchSubscriptions = async () => {
+      try {
+        const response = await fetch(urls.Invoice);
+        const data = await response.json();
+        if (response.ok) {
+          setInvoice(data); // Assuming data is an array of subscriptions
+        } else {
+          console.error("Failed to fetch subscriptions:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubscriptions();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userId) return;
+      try {
+        const response = await axios.get(`${urls.fetchUser}?user_id=${getUserIdFromLocalStorage()}`);
+        const user = response.data[0]; // <-- important: get the first user object from array
+  
+        console.log('User data from api:', user);
+  
+        setFirstname(user.firstname);
+        setLastname(user.lastname);
+        setRole(user.role);
+        setEmail(user.email);
+        setImage(user.image);
+        setContact(user.contact || '');
+        setZipCode(user.zip_code || '');
+        setAddress(user.adress || ''); // typo fix: 'adress' not 'address' in your API
+  
+        setFormData({
+          firstname: user.firstname,
+          lastname: user.lastname,
+          email: user.email,
+          contact: user.contact || '',
+          role: user.role,
+          zip_code: user.zip_code || '',
+          address: user.adress || '', // typo fix
+          imageBase64: user.image,
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    fetchUserData();
+  }, [getUserIdFromLocalStorage()]);
+  
 
   // Render a loading indicator while the data is being fetched
   if (loading) {
@@ -110,80 +193,77 @@ const invoices = () => {
 
       
       {role === 'user' &&
-      <TableContainer component={Paper} sx={{ overflow: "visible" }} >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell style={{ fontWeight: "bold" }}>Invoice No</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Month</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Issue Date</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Due Date</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Amount PKR</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Status</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {invoicesData.map((invoice) => (
-              <TableRow
-                key={invoice.id}
-                onClick={handleClickOpen}
+  <TableContainer component={Paper} sx={{ overflow: "visible" }} >
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell style={{ fontWeight: "bold" }}>Sr No</TableCell>
+          <TableCell style={{ fontWeight: "bold" }}>Invoice Id</TableCell>
+          <TableCell style={{ fontWeight: "bold" }}>Subscription</TableCell>
+          <TableCell style={{ fontWeight: "bold" }}>Start Date</TableCell>
+          <TableCell style={{ fontWeight: "bold" }}>End Date</TableCell>
+          <TableCell style={{ fontWeight: "bold" }}>Price PKR</TableCell>
+          <TableCell style={{ fontWeight: "bold" }}>Status</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {invoices.map((invoice, index) => (
+          <TableRow
+            key={invoice.sub_id}
+            onClick={() => handleClickOpenUser(invoice)}
 
-                hover
-                style={{
-                  cursor: 'pointer',
-                  transition: "all 0.3s ease-in-out", // Smooth transition
-                  borderRadius: "8px", // Rounded effect
-                  overflow: "hidden", // Prevents content overflow
+            hover
+            style={{
+              cursor: 'pointer',
+              transition: "all 0.3s ease-in-out",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.02)";
+              e.currentTarget.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
+              e.currentTarget.style.backgroundColor = theme.palette.background.paper;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <TableCell>{index + 1}</TableCell> {/* Serial No */}
+            <TableCell>{invoice.inv_id}</TableCell>
+            <TableCell>{invoice.subscription}</TableCell>
+            <TableCell>{invoice.start_date}</TableCell>
+            <TableCell>{invoice.end_date}</TableCell>
+            <TableCell>{invoice.billing_price}</TableCell>
+            <TableCell>
+              <Typography 
+                sx={{ 
+                  display: 'inline-block',
+                  padding: '5px 10px',
+                  borderRadius: '12px',
+                  backgroundColor: invoice.status === 'Paid' ? 'success.light' : 'warning.light',
+                  color: 'white',
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.02)";
-                  e.currentTarget.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
-                  e.currentTarget.style.backgroundColor = theme.palette.background.paper;
-                }} // Expand with shadow effect
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }} // Reset on leave
               >
-                <TableCell>{invoice.id}</TableCell>
-                <TableCell>{invoice.month}</TableCell>
-                <TableCell>{invoice.issueDate}</TableCell>
-                <TableCell>{invoice.dueDate}</TableCell>
-                <TableCell>{invoice.amount}</TableCell>
-                <TableCell>
-                  <span
-                    style={{
-                      display: "inline-block", // Ensures uniform block size
-                      width: "80px", // Fixed width for consistency
-                      textAlign: "center", // Centers the text
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      color: "#fff",
-                      backgroundColor:
-                        invoice.status === "Paid"
-                          ? "#4EA44D"
-                          : invoice.status === "Pending"
-                            ? "#F39C12"
-                            : "red",
-                    }}
-                  >
-                    {invoice.status}
-                  </span>
-                </TableCell>
-
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                {invoice.status}
+              </Typography>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </TableContainer>
 }
+
 
 {role === 'superadmin' &&
        <TableContainer component={Paper} sx={{ overflow: "visible" }}>
        <Table>
          <TableHead>
            <TableRow>
+           <TableCell style={{ fontWeight: "bold" }}>Sr No.</TableCell>
+
              <TableCell style={{ fontWeight: "bold" }}>Id</TableCell>
              <TableCell style={{ fontWeight: "bold" }}>Warn Date</TableCell>
              <TableCell style={{ fontWeight: "bold" }}>Stop Date</TableCell>
@@ -195,7 +275,7 @@ const invoices = () => {
            </TableRow>
          </TableHead>
          <TableBody>
-           {subscriptions.map((subscription) => (
+           {subscriptions.map((subscription, index) => (
              <TableRow
              key={subscription.sub_id}
              onClick={() => handleClickOpen(subscription)}
@@ -217,6 +297,8 @@ const invoices = () => {
                  e.currentTarget.style.backgroundColor = "transparent";
                }}
              >
+                             <TableCell>{index + 1}</TableCell>
+
                <TableCell>{subscription.sub_id}</TableCell>
                <TableCell>{subscription.warn_days}</TableCell>
                <TableCell>{subscription.stop_days}</TableCell>
@@ -252,6 +334,7 @@ const invoices = () => {
      </TableContainer>
 }
 
+{role === 'superadmin' &&
       <BootstrapDialog
         onClose={handleClose}
         aria-labelledby="customized-dialog-title"
@@ -376,6 +459,131 @@ const invoices = () => {
 
         </DialogActions>
       </BootstrapDialog>
+}
+
+
+
+{role === 'user' && selectedInvoices && (
+  <BootstrapDialog
+  onClose={handleClose}
+  aria-labelledby="customized-dialog-title"
+  open={open}
+  maxWidth="md"
+  fullWidth
+  
+
+>
+<Box>
+
+<DialogTitle textAlign={'center'} sx={{ m: 0, p: 2, fontWeight: "bold", }} id="customized-dialog-title">
+  Invoice
+</DialogTitle>
+
+<IconButton
+  aria-label="close"
+  onClick={handleClose}
+  sx={(theme) => ({
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    color: theme.palette.grey[500],
+  })}
+>
+  <CloseIcon />
+</IconButton>
+
+</Box>
+     <Box display={'flex'} flexDirection={'row'} justifyContent={'space-around'}>
+    <Box>
+      <Typography fontWeight="bold">Bill To</Typography>
+      <Typography>
+    <b> Name: </b>{firstname}<br />
+    <b> Email: </b>{email}<br />
+    <b> Ph: </b>{contact}
+      </Typography>
+    </Box>
+
+    <Box>
+      <Typography fontWeight={'bold'}>
+        Invoice #
+      </Typography>
+      <Typography>
+        INV{selectedInvoices.inv_id}
+      </Typography>
+
+      <Box>
+        <Typography fontWeight={'bold'}>
+          Subscription
+        </Typography>
+        <Typography>
+        {selectedInvoices.subscription}
+        </Typography>
+      </Box>
+    </Box>
+
+    <Box>
+      <Box>
+        <Typography fontWeight={'bold'}>
+          Start Date
+        </Typography>
+        <Typography>
+        {selectedInvoices.start_date}
+        </Typography>
+      </Box>
+      <Box>
+        <Typography fontWeight={'bold'}>
+          End date
+        </Typography>
+        <Typography>
+        {selectedInvoices.end_date}
+        </Typography>
+      </Box>
+    </Box>
+
+    <Box>
+      <Typography fontWeight={'bold'}>
+        Billing Price
+      </Typography>
+      <Typography fontWeight={'bold'} fontSize={'large'}> PKR. 
+      {selectedInvoices.billing_price}
+      </Typography>
+    </Box>
+  </Box>
+  <br />
+       
+        <DialogContent dividers>
+          <Table size='small'>
+            <TableHead>
+              <TableRow>
+                <TableCell><Typography fontWeight="bold">Description</Typography></TableCell>
+                <TableCell align="right"><Typography fontWeight="bold">Unit Price</Typography></TableCell>
+                <TableCell align="right"><Typography fontWeight="bold">Discount</Typography></TableCell>
+                <TableCell align="right"><Typography fontWeight="bold">Amount</Typography></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* Dummy Data Rows */}
+               <TableRow>
+                <TableCell></TableCell>
+                <TableCell align="right"></TableCell>
+                <TableCell align="right"></TableCell>
+                <TableCell align="right"></TableCell>
+              </TableRow>
+  
+            </TableBody>
+          </Table>
+        </DialogContent>
+    <DialogActions>
+    <Button autoFocus onClick={handleClose}>
+            <Download fontSize='small' /> Download
+          </Button>
+    </DialogActions>
+  </BootstrapDialog>
+)}
+
+
+
+
 
 
 

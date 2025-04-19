@@ -5,6 +5,8 @@ import {
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import urls from '../../urls/urls';
+
 
 
 const ViewInvoices = () => {
@@ -15,6 +17,7 @@ const ViewInvoices = () => {
     const [editRowIndex, setEditRowIndex] = useState(null);
     const [editedRow, setEditedRow] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
+
   
     useEffect(() => {
       const user = JSON.parse(localStorage.getItem('user'));
@@ -22,7 +25,7 @@ const ViewInvoices = () => {
         setRole(user.role || '');
       }
   
-      axios.get("http://192.168.47.26:8000/invoice/")
+      axios.get(urls.Invoice)
         .then(response => {
           const data = response.data;
           console.log('Fetched subscription data:', data);
@@ -86,7 +89,7 @@ const ViewInvoices = () => {
     try {
       // Send POST request to backend
       const response = await axios.post(
-        "http://192.168.47.26:8000/invoice/",
+        urls.Invoice,
         {
           inv_id: invoice.id, // Include inv_id in the body
           status: newStatus,
@@ -109,10 +112,13 @@ const ViewInvoices = () => {
   // Filter subscriptions based on the searchTerm
   const filteredSubscriptions = subscriptions.filter((subscription) => {
     return (
-      subscription.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      subscription.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      subscription.phone.includes(searchTerm) ||
-      subscription.id.toString().includes(searchTerm)
+      subscription.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+
+
+      subscription.id.toString().includes(searchTerm) ||
+      subscription.phone.toString().includes(searchTerm) ||
+      subscription.date.toString().includes(searchTerm)
+
     );
   });
 
@@ -145,6 +151,8 @@ const ViewInvoices = () => {
           <Table>
             <TableHead>
               <TableRow>
+              <TableCell><b>Sr No</b></TableCell>
+
                 <TableCell><b>Id</b></TableCell>
                 <TableCell><b>Subscription</b></TableCell>
                 <TableCell><b>Start Date</b></TableCell>
@@ -157,7 +165,10 @@ const ViewInvoices = () => {
             </TableHead>
             <TableBody>
               {filteredSubscriptions.map((row, index) => (
+
                 <TableRow key={index}>
+                        <TableCell>{index + 1}</TableCell> {/* Sr No. */}
+                  
                   {[
                     'id', 'date', 'username', 'email', 'phone',
                     

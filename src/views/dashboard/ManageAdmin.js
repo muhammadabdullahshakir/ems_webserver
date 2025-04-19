@@ -44,11 +44,13 @@ const ManageAdmin = () => {
     setUserToDelete(null); // Reset user to delete
   };
 
+
+
   // Fixed Delete API Call
   const handleConfirmDelete = async () => {
     try {
       // Perform the POST request to delete the user
-      await axios.post(`${urls.deleteUser(userToDelete)}/`); // Assuming POST is supported at this endpoint
+      await axios.post(`${urls.deleteUser(userToDelete)}`); // Assuming POST is supported at this endpoint
 
       // Remove the deleted admin from the state list
       setAdmins((prevAdmins) => prevAdmins.filter((admin) => admin.id !== userToDelete));
@@ -58,6 +60,13 @@ const ManageAdmin = () => {
       alert(`Failed to delete user: ${error.response?.data?.message || 'Server Error'}`);
     }
   };
+
+  const filteredAdmins = admins.filter((admin) =>
+    `${admin.firstname} ${admin.lastname} ${admin.email}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+  
 
   
   // Fetch the admins on page load
@@ -147,45 +156,48 @@ const ManageAdmin = () => {
         />
       </Box>
 
-      {/* Admins Table */}
-      <TableContainer component={Paper} sx={{ marginTop: 4 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell style={{ fontWeight: "bold" }}>First Name</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Last Name</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Email</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Phone Number</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Address</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Zip Code</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Edit</TableCell>
-            </TableRow>
-          </TableHead>
+{/* Admins Table */}
+<TableContainer component={Paper} sx={{ marginTop: 4 }}>
+  <Table>
+    <TableHead>
+      <TableRow>
+        <TableCell style={{ fontWeight: "bold" }}>Sr No.</TableCell>
+        <TableCell style={{ fontWeight: "bold" }}>First Name</TableCell>
+        <TableCell style={{ fontWeight: "bold" }}>Last Name</TableCell>
+        <TableCell style={{ fontWeight: "bold" }}>Email</TableCell>
+        <TableCell style={{ fontWeight: "bold" }}>Phone Number</TableCell>
+        <TableCell style={{ fontWeight: "bold" }}>Address</TableCell>
+        <TableCell style={{ fontWeight: "bold" }}>Zip Code</TableCell>
+        <TableCell style={{ fontWeight: "bold" }}>Edit</TableCell>
+      </TableRow>
+    </TableHead>
 
-          <TableBody>
-            {admins.map((admin) => (
-              <TableRow key={admin.id}>
-                <TableCell>{admin.username?.split(" ")[0]}</TableCell>
-                <TableCell>{admin.username?.split(" ")[1] || ""}</TableCell>
-                <TableCell>{admin.email}</TableCell>
-                <TableCell>{admin.contact || "-"}</TableCell>
-                <TableCell>{admin.address || "-"}</TableCell>
-                <TableCell>{admin.zip_code || "-"}</TableCell>
-                <TableCell>
-                  <Box display="flex" gap={1}>
-                    <IconButton color="primary" onClick={() => handleEditUser(admin)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleOpenDialog(admin.id)}>
-                      <Delete />
-                    </IconButton>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    <TableBody>
+      {filteredAdmins.map((admin, index) => (
+        <TableRow key={admin.id}>
+          <TableCell>{index + 1}</TableCell> {/* Sr No. */}
+          <TableCell>{admin.firstname}</TableCell>
+          <TableCell>{admin.lastname}</TableCell>
+          <TableCell>{admin.email}</TableCell>
+          <TableCell>{admin.contact || "-"}</TableCell>
+          <TableCell>{admin.address || "-"}</TableCell>
+          <TableCell>{admin.zip_code || "-"}</TableCell>
+          <TableCell>
+            <Box display="flex" gap={1}>
+              <IconButton color="primary" onClick={() => handleEditUser(admin)}>
+                <Edit />
+              </IconButton>
+              <IconButton color="error" onClick={() => handleOpenDialog(admin.id)}>
+                <Delete />
+              </IconButton>
+            </Box>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</TableContainer>
+
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>

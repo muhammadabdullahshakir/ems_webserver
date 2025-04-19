@@ -32,6 +32,32 @@ const DashBoard = () => {
   const [totalUser, setTotalUsers] = useState([])
   const [totalAdmins, setTotalAdmins] = useState([])
   const [adminDetails, setAdminDetails] = useState([]);
+  const [superAdminTotalProjectCount, setSuperAdminTotalProjectCount] = useState(0)
+      
+      
+  
+  
+  
+    useEffect(() => {
+      const getSuperAdminTotalProject = async () => {
+        try {
+          const response = await axios.get(urls.Get_superAdmin_Project_Count);
+          const data = response.data.total_projects;
+          console.log('Projects:', data);
+         
+  
+          setSuperAdminTotalProjectCount(data);
+        } catch (error) {
+          console.error('Error fetching user gateways:', error);
+        }
+      };
+    
+      getSuperAdminTotalProject(); // Call it once initially
+      const intervalId = setInterval(getSuperAdminTotalProject, 5000); // Then every 5 seconds
+    
+      return () => clearInterval(intervalId); // Cleanup on unmount
+    }, []);
+  
 
 
   const dummyData = [
@@ -226,7 +252,7 @@ const DashBoard = () => {
           bgColor="linear-gradient(135deg,rgb(131, 219, 136), #43a047)" // Green
         />
         <WidgetsDropdown
-          title="20"
+          title={superAdminTotalProjectCount}
           subtitle="Total Projects"
           icon={<AssignmentIcon fontSize="large" />}
           bgColor="linear-gradient(135deg,rgb(250, 150, 148), #e53935)"
@@ -267,6 +293,7 @@ const DashBoard = () => {
   <Table>
     <TableHead>
       <TableRow>
+        <TableCell style={{ fontWeight: 'bold' }}>Sr No.</TableCell>
         <TableCell style={{ fontWeight: 'bold' }}>Username</TableCell>
         <TableCell style={{ fontWeight: 'bold' }}>Email</TableCell>
         <TableCell style={{ fontWeight: 'bold' }}>Total Users</TableCell>
@@ -274,17 +301,26 @@ const DashBoard = () => {
       </TableRow>
     </TableHead>
     <TableBody>
-      {adminDetails.map((admin) => (
-        <TableRow key={admin.id}>
-         <TableCell>{admin.username}</TableCell>
-      <TableCell>{admin.email}</TableCell>
-      <TableCell>{admin.totalUsers}</TableCell> {/* Corrected */}
-      <TableCell>{admin.totalProjects}</TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
+  {adminDetails
+    .filter(
+      (admin) =>
+        admin.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        admin.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .map((admin, index) => (
+      <TableRow key={admin.id}>
+        <TableCell>{index + 1}</TableCell>
+        <TableCell>{admin.username}</TableCell>
+        <TableCell>{admin.email}</TableCell>
+        <TableCell>{admin.totalUsers}</TableCell>
+        <TableCell>{admin.totalProjects}</TableCell>
+      </TableRow>
+    ))}
+</TableBody>
+
   </Table>
 </TableContainer>
+
 
       </Box>
     </Box>

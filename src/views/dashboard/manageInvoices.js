@@ -5,6 +5,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getUserIdFromLocalStorage } from '../../data/localStorage';
+import urls from '../../urls/urls';
 
 const ManageInvoices = () => {
   const [role, setRole] = useState('');
@@ -19,7 +20,7 @@ const ManageInvoices = () => {
       setRole(user.role || '');
     }
 
-    axios.get("http://192.168.47.26:8000/create_or_update_subscription/")
+    axios.get(urls.CreateOrUpdateSubscription)
       .then(response => {
         const data = response.data;
         console.log('Fetched subscription data:', data);
@@ -77,6 +78,7 @@ const ManageInvoices = () => {
       discount: parseFloat(updatedRow.discount),
       warn_days: parseFloat(updatedRow.warn_time), // corrected key
       stop_days: parseFloat(updatedRow.stop_time), // corrected key
+
     };
     
     
@@ -85,7 +87,7 @@ const ManageInvoices = () => {
   
     try {
       const response = await axios.post(
-        "http://192.168.47.26:8000/create_or_update_subscription/",
+        urls.CreateOrUpdateSubscription,
         payload
       );
       console.log('POST success:', response.data);
@@ -143,6 +145,8 @@ const ManageInvoices = () => {
           <Table>
             <TableHead>
               <TableRow>
+              <TableCell><b>Sr No</b></TableCell>
+
                 <TableCell><b>Id</b></TableCell>
                 <TableCell><b>Date</b></TableCell>
                 <TableCell><b>Username</b></TableCell>
@@ -158,43 +162,45 @@ const ManageInvoices = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredSubscriptions.map((row, index) => (
-                <TableRow key={index}>
-                  {[
-                    'id', 'date', 'username', 'email', 'phone',
-                    'projects', 'unit_price', 'discount',
-                    'total', 'warn_time', 'stop_time'
-                  ].map((field, i) => {
-                    const editableFields = ['projects', 'unit_price', 'discount', 'total', 'warn_time', 'stop_time'];
-                    return (
-                      <TableCell key={i}>
-                        {editRowIndex === index && editableFields.includes(field) ? (
-                          <TextField
-                            value={editedRow[field] || ''}
-                            onChange={(e) => handleInputChange(field, e.target.value)}
-                            variant="outlined"
-                            size="small"
-                          />
-                        ) : (
-                          row[field]
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                  <TableCell>
-                    {editRowIndex === index ? (
-                      <Button variant="contained" onClick={() => handleSaveClick(index)}>
-                        Save
-                      </Button>
-                    ) : (
-                      <Button variant="outlined" onClick={() => handleEditClick(index)}>
-                        Edit
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+  {filteredSubscriptions.map((row, index) => (
+    <TableRow key={index}>
+      <TableCell>{index + 1}</TableCell> {/* Sr No. */}
+      {[
+        'id', 'date', 'username', 'email', 'phone',
+        'projects', 'unit_price', 'discount',
+        'total', 'warn_time', 'stop_time'
+      ].map((field, i) => {
+        const editableFields = ['projects', 'unit_price', 'discount', 'total', 'warn_time', 'stop_time'];
+        return (
+          <TableCell key={i}>
+            {editRowIndex === index && editableFields.includes(field) ? (
+              <TextField
+                value={editedRow[field] || ''}
+                onChange={(e) => handleInputChange(field, e.target.value)}
+                variant="outlined"
+                size="small"
+              />
+            ) : (
+              row[field]
+            )}
+          </TableCell>
+        );
+      })}
+      <TableCell>
+        {editRowIndex === index ? (
+          <Button variant="contained" onClick={() => handleSaveClick(index)}>
+            Save
+          </Button>
+        ) : (
+          <Button variant="outlined" onClick={() => handleEditClick(index)}>
+            Edit
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
           </Table>
         </TableContainer>
       )}

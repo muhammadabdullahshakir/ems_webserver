@@ -6,7 +6,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import frame from "../.././../assets/images/ems logo.svg";
-import frame1 from "../.././../assets/images/profile.svg";
+import frame1 from "../../../assets/images/profile.svg.png";
 import urls from "../../../urls/urls";
 import { InputAdornment } from "@mui/material";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";

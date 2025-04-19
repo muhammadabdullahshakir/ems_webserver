@@ -36,10 +36,15 @@ const Dashboard = () => {
   const [totalUser, setTotalUsers] = useState([])
   const [hardwareCount, setHardwareCount] = useState(0)
   const [deployedHardwareCount, setDeployedHardwareCount] = useState(0)
+  const [userdeployedHardwareCount, setUserDeployedHardwareCount] = useState(0)
+
   const [userAlotedGatewaysCount, setUserAlotedGatewaysCount] = useState(0)
   const [totalProjectsCount, setTotalProjectsCount] = useState(0)
+  const [userProjectsCount, setUserProjectsCount] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [projects, setProjects] = useState([])
+
+
   const id = projects.PM_id
   const [selectedProject, setSelectedProject] = useState(null)
   const [role, setRole] = useState('');
@@ -67,6 +72,7 @@ const Dashboard = () => {
         project.PM_id?.toString().includes(searchTerm) ||
         project.user_firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.address?.toLowerCase().includes(searchTerm.toLowerCase()),
+        
     )
     .sort((a, b) => {
       const search = searchTerm.toLowerCase()
@@ -77,27 +83,63 @@ const Dashboard = () => {
       return 0
     })
 
-  // Fetch Total Users
-  useEffect(() => {
-    const fetchTotalUsers = async () => {
-      try {
-        const response = await fetch(urls.userCount)
-        if (response.ok) {
-          const data = await response.json()
-          setTotalUsers(data.total_users)
-        } else {
-          console.error('Failed to fetch user count:', response.status, response.statusText)
+    const filteredUserProjects = userProjects
+    .filter(
+      (project) =>
+        project.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.PM_id?.toString().includes(searchTerm) ||
+        project.address?.toLowerCase().includes(searchTerm.toLowerCase()),
+        
+    )
+    .sort((a, b) => {
+      const search = searchTerm.toLowerCase()
+      const aStarts = a.name?.toLowerCase().startsWith(search)
+      const bStarts = b.name?.toLowerCase().startsWith(search)
+      if (aStarts && !bStarts) return -1
+      if (!aStarts && bStarts) return 1
+      return 0
+    })
+
+    useEffect(() => {
+      const fetchTotalUsers = async () => {
+        try {
+          const response = await fetch(urls.fetchUser);
+          if (response.ok) {
+            const data = await response.json();
+    
+            console.log('User API response:', data); // 👈 check the response structure
+    
+            const currentUserId = getUserIdFromLocalStorage();
+    
+            // If the response is an array directly (not { users: [...] })
+            const usersArray = Array.isArray(data)
+              ? data
+              : Array.isArray(data.users)
+              ? data.users
+              : [];
+    
+            const filteredUsers = usersArray.filter(
+              user => String(user.created_by_id) === String(currentUserId)
+            );
+    
+            console.log('Filtered Users:', filteredUsers);
+            setTotalUsers(filteredUsers.length);
+          } else {
+            console.error('Failed to fetch users:', response.status, response.statusText);
+          }
+        } catch (error) {
+          console.error('Error fetching users:', error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching user count:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchTotalUsers()
-    const intervalId = setInterval(fetchTotalUsers, 5000)
-    return () => clearInterval(intervalId)
-  }, [])
+      };
+    
+      fetchTotalUsers();
+      const intervalId = setInterval(fetchTotalUsers, 5000);
+      return () => clearInterval(intervalId);
+    }, []);
+    
+
 
   // Fetch Total Hardware
   useEffect(() => {
@@ -154,6 +196,27 @@ const Dashboard = () => {
     return () => clearInterval(intervalId)
   }, [])
 
+  useEffect(() => {
+    const fetchUserDeployedGatewayCount = async () => {
+      try {
+        const response = await fetch(urls. get_deployed_gateway_count)
+        if (response.ok) {
+          const data = await response.json()
+          setUserDeployedHardwareCount(data.deployed_gateway_count)
+        } else {
+          console.error('Failed to fetch Deployed Gateway:', response.status, response.statusText)
+        }
+      } catch (error) {
+        console.error('Error fetching Deployed Gateway count:', error)
+      }
+    }
+    fetchUserDeployedGatewayCount()
+    const intervalId = setInterval(fetchUserDeployedGatewayCount, 5000)
+    return () => clearInterval(intervalId)
+  }, [])
+
+
+
   const fetchProjects = async () => {
     try {
       const response = await axios.get(urls.getUserProjects()); // Get URL from the helper
@@ -168,17 +231,24 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchProjects();
-  }, []); 
+    fetchProjects(); // Call initially
+  
+    const intervalId = setInterval(() => {
+      fetchProjects(); // Poll every 5 seconds
+    }, 5000);
+  
+    return () => clearInterval(intervalId); // Clear on unmount
+  }, []);
+  
 
   // Total Projects
   useEffect(() => {
-    const fetchTotalProjectsCount = async () => {
+    const fetchTotalUserProjectsCount = async () => {
       try {
-        const response = await fetch(urls.totalProject)
+        const response = await fetch(urls.usertotalProject)
         if (response.ok) {
           const data = await response.json()
-          setTotalProjectsCount(data.total_project)
+          setUserProjectsCount(data.project_count)
         } else {
           console.error('Failed to fetch Total Projects:', response.status, response.statusText)
           Alert.alert('Error', `Failed to fetch Total Projects count: ${response.status}`)
@@ -191,24 +261,50 @@ const Dashboard = () => {
       }
     }
 
-    fetchTotalProjectsCount()
-    const intervalId = setInterval(fetchTotalProjectsCount, 500)
+    fetchTotalUserProjectsCount()
+    const intervalId = setInterval(fetchTotalUserProjectsCount, 500)
     return () => clearInterval(intervalId)
   }, [])
 
-  // Wlcm to {firstname of user}
+
+  
+
+  
+
+
+
+
+  
   useEffect(() => {
     const getToalProject = async () => {
-      const response = await axios.get(urls.getToalProject)
-      const data = response.data.projects
-      console.log('Projects:', data)
-      setProjects(data)
-    }
-
-    getToalProject()
-    const intervalId = setInterval(getToalProject, 5000)
-    return () => clearInterval(intervalId)
-  }, [])
+      try {
+        const response = await axios.get(urls.getToalProject);
+        const allProjects = response.data.projects;
+  
+        const currentUserId = Number(getUserIdFromLocalStorage());
+  
+        const filteredProjects = allProjects.filter(
+          project => project.created_by_id === currentUserId
+        );
+  
+        console.log('All Projects:', allProjects);
+        console.log('Current User ID:', currentUserId);
+        console.log('Filtered Projects:', filteredProjects);
+  
+        setProjects(filteredProjects);
+        setTotalProjectsCount(filteredProjects.length); // 👈 set the length here
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+  
+    getToalProject();
+    const intervalId = setInterval(getToalProject, 5000);
+    return () => clearInterval(intervalId);
+  }, []);
+  
+  
+  
 
   useEffect(() => {
     const getTotalUsergateways = async () => {
@@ -295,18 +391,33 @@ const Dashboard = () => {
           icon={<CheckCircleIcon fontSize="large" />}
           bgColor="linear-gradient(135deg,rgb(248, 205, 141), #fb8c00)" // Orange
         />)}
-        <WidgetsDropdown
+                {role === 'admin' && (<WidgetsDropdown
           title={loading ? 'Loading...' : deployedHardwareCount}
           subtitle="Deployed Hardware"
           icon={<CloudUploadIcon fontSize="large" />}
           bgColor="linear-gradient(135deg,rgb(187, 155, 243), #5e35b1)" // Purple
-        />
-        <WidgetsDropdown
+        />)}
+        {role === 'user' && (<WidgetsDropdown
+          title={loading ? 'Loading...' : userdeployedHardwareCount}
+          subtitle="Deployed Hardware"
+          icon={<CloudUploadIcon fontSize="large" />}
+          bgColor="linear-gradient(135deg,rgb(187, 155, 243), #5e35b1)" // Purple
+        />)}
+
+{role === 'admin' &&(        <WidgetsDropdown
           title={loading ? 'Loading...' : totalProjectsCount}
           subtitle="Total Projects"
           icon={<AssignmentIcon fontSize="large" />}
           bgColor="linear-gradient(135deg,rgb(250, 150, 148), #e53935)" // Red
-        />
+        />)}
+
+ {role === 'user' && (
+<WidgetsDropdown
+          title={loading ? 'Loading...' : userProjectsCount}
+          subtitle="Total Projects"
+          icon={<AssignmentIcon fontSize="large" />}
+          bgColor="linear-gradient(135deg,rgb(250, 150, 148), #e53935)" // Red
+        />)}
       </Box>
      
      <GraphContainer/>
@@ -349,16 +460,17 @@ const Dashboard = () => {
           <Table>
             <TableHead>
               <TableRow >
+              <TableCell style={{ fontWeight: 'bold' }}>Sr No</TableCell>
+
                 <TableCell style={{ fontWeight: 'bold' }}>Project ID</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Project Name</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Username</TableCell>
                 <TableCell style={{ fontWeight: 'bold' }}>Address</TableCell>
-                
                 <TableCell style={{ fontWeight: 'bold' }}>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredProjects.map((project) => (
+              {filteredProjects.map((project, index) => (
                 <TableRow
                 hover
                 
@@ -380,12 +492,15 @@ const Dashboard = () => {
                   e.currentTarget.style.backgroundColor = "transparent"; }}
                   
               >
+                  <TableCell>{index +1}</TableCell>
+
                   <TableCell>{project.PM_id}</TableCell>
                   <TableCell>{project.name}</TableCell>
                   <TableCell>
   <Box display="flex" alignItems="center" gap={1}>
     <Avatar
-      src={project.image} // use the base64 image here
+      src={project.user_image}
+      alt={project.user_firstname}// use the base64 image here
       sx={{ width: 32, height: 32 }}
     >
       {project.user_firstname?.[0] || 'U'} {/* Fallback letter if image fails */}
@@ -396,38 +511,56 @@ const Dashboard = () => {
                   <TableCell>{project.address}</TableCell>
                   
                   <TableCell align="center">
-                    {project.is_active ? (
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          p: 0,
-                          px: 1,
-                          bgcolor: '#4EA44D',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                        }}
-                      >
-                        Active
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          p: 0,
-                          px: 1,
-                          bgcolor: 'red',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                        }}
-                      >
-                        Inactive
-                      </Button>
-                    )}
-                  </TableCell>
+  {project.is_active ? (
+    <Button
+      variant="contained"
+      size="small"
+      disableElevation
+      disableRipple
+      sx={{
+        p: 0,
+        px: 1,
+        bgcolor: '#4EA44D',
+        color: 'white',
+        fontSize: '12px',
+        fontWeight: '600',
+        boxShadow: 'none',
+        pointerEvents: 'none',
+        cursor: 'default',
+        '&:hover': {
+          bgcolor: '#4EA44D',
+          boxShadow: 'none',
+        },
+      }}
+    >
+      Active
+    </Button>
+  ) : (
+    <Button
+      variant="contained"
+      size="small"
+      disableElevation
+      disableRipple
+      sx={{
+        p: 0,
+        px: 1,
+        bgcolor: 'red',
+        color: 'white',
+        fontSize: '12px',
+        fontWeight: '600',
+        boxShadow: 'none',
+        pointerEvents: 'none',
+        cursor: 'default',
+        '&:hover': {
+          bgcolor: 'red',
+          boxShadow: 'none',
+        },
+      }}
+    >
+      Inactive
+    </Button>
+  )}
+</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -435,82 +568,101 @@ const Dashboard = () => {
         </TableContainer>
         }
 
-        {role === 'user' &&
-        <TableContainer component={Paper} sx={{ overflow: "visible" }}>
-                  <Table>
-                    <TableHead>
-                      <TableRow  >
-                        <TableCell style={{ fontWeight: 'bold' }}>Project ID</TableCell>
-                        <TableCell style={{ fontWeight: 'bold' }}>Project Name</TableCell>
-                        <TableCell style={{ fontWeight: 'bold' }}>Address</TableCell>
-                        <TableCell style={{ fontWeight: 'bold' }}>Connected Gateways</TableCell>
-                        <TableCell style={{ fontWeight: 'bold' }}>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {userProjects.map((project) => (
-                        <TableRow
-                        hover
-                        key={project.PM_id || index}
-                        onClick={() => handleProjectClick(project)}
-                        style={{ cursor: 'pointer', 
-                          transition: "all 0.3s ease-in-out", // Smooth transition
-                          borderRadius: "8px", // Rounded effect
-                          overflow: "hidden", // Prevents content overflow
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = "scale(1.02)";
-                          e.currentTarget.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
-                          e.currentTarget.style.backgroundColor = theme.palette.background.paper;
-                        }} // Expand with shadow effect
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = "scale(1)";
-                          e.currentTarget.style.boxShadow = "none";
-                          e.currentTarget.style.backgroundColor = "transparent";  }}
-                      >
-                          <TableCell>{project.PM_id}</TableCell>
-                          <TableCell>{project.name}</TableCell>
-                          <TableCell>{project.address}</TableCell>
-                          <TableCell>{project.connected_gateways.length}</TableCell>
-                          <TableCell align="center">
-                            {project.is_active ? (
-                              <Button
-                                variant="contained"
-                                size="small"
-                                sx={{
-                                  p: 0,
-                                  px: 1,
-                                  bgcolor: '#4EA44D',
-                                  color: 'white',
-                                  fontSize: '12px',
-                                  fontWeight: '600',
-                                }}
-                              >
-                                Active
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="contained"
-                                size="small"
-                                sx={{
-                                  p: 0,
-                                  px: 1,
-                                  bgcolor: 'red',
-                                  color: 'white',
-                                  fontSize: '12px',
-                                  fontWeight: '600',
-                                }}
-                              >
-                                Inactive
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-        </TableContainer>
-        }
+{role === 'user' && 
+  <TableContainer component={Paper} sx={{ overflow: "visible" }}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell style={{ fontWeight: 'bold' }}>Sr No</TableCell>
+          <TableCell style={{ fontWeight: 'bold' }}>Project ID</TableCell>
+          <TableCell style={{ fontWeight: 'bold' }}>Project Name</TableCell>
+          <TableCell style={{ fontWeight: 'bold' }}>Address</TableCell>
+          <TableCell style={{ fontWeight: 'bold' }}>Connected Gateways</TableCell>
+          <TableCell style={{ fontWeight: 'bold' }}>Status</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {filteredUserProjects.map((project, index) => (
+          <TableRow
+            hover
+            key={project.PM_id || index}
+            onClick={() => handleProjectClick(project)}
+            style={{ cursor: 'pointer', transition: "all 0.3s ease-in-out", borderRadius: "8px", overflow: "hidden" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.02)";
+              e.currentTarget.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
+              e.currentTarget.style.backgroundColor = theme.palette.background.paper;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <TableCell>{index + 1}</TableCell> {/* Serial Number */}
+            <TableCell>{project.PM_id}</TableCell>
+            <TableCell>{project.name}</TableCell>
+            <TableCell>{project.address}</TableCell>
+            <TableCell>{project.connected_gateways.length}</TableCell>
+            <TableCell align="center">
+  {project.is_active ? (
+    <Button
+      variant="contained"
+      size="small"
+      disableElevation
+      disableRipple
+      sx={{
+        p: 0,
+        px: 1,
+        bgcolor: '#4EA44D',
+        color: 'white',
+        fontSize: '12px',
+        fontWeight: '600',
+        boxShadow: 'none',
+        pointerEvents: 'none',
+        cursor: 'default',
+        '&:hover': {
+          bgcolor: '#4EA44D',
+          boxShadow: 'none',
+        },
+      }}
+    >
+      Active
+    </Button>
+  ) : (
+    <Button
+      variant="contained"
+      size="small"
+      disableElevation
+      disableRipple
+      sx={{
+        p: 0,
+        px: 1,
+        bgcolor: 'red',
+        color: 'white',
+        fontSize: '12px',
+        fontWeight: '600',
+        boxShadow: 'none',
+        pointerEvents: 'none',
+        cursor: 'default',
+        '&:hover': {
+          bgcolor: 'red',
+          boxShadow: 'none',
+        },
+      }}
+    >
+      Inactive
+    </Button>
+  )}
+</TableCell>
+
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </TableContainer>
+}
+
       </Box>
     </Box>
   )

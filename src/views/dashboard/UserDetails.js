@@ -27,6 +27,8 @@ import DialogActions from '@mui/material/DialogActions';
 import CloseIcon from '@mui/icons-material/Close';
 import { Edit } from '@mui/icons-material'
 import { getUserIdFromLocalStorage } from '../../data/localStorage';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+
 
 
 
@@ -60,6 +62,12 @@ const CreateUser = () => {
   const [contact, setContact] = useState('')
 const [zipCode, setZipCode] = useState('')
 const [address, setAddress] = useState('')
+const [password, setPassword ] = useState('')
+const [showPassword, setShowPassword] = useState(false);
+
+const toggleVisibility = () => {
+  setShowPassword(prev => !prev);
+};
 
   // Fetch user data from API when component mounts
   useEffect(() => {
@@ -79,6 +87,7 @@ const [address, setAddress] = useState('')
         setContact(user.contact || '');
         setZipCode(user.zip_code || '');
         setAddress(user.adress || ''); // typo fix: 'adress' not 'address' in your API
+        setPassword(user.password || '');
   
         setFormData({
           firstname: user.firstname,
@@ -89,6 +98,7 @@ const [address, setAddress] = useState('')
           zip_code: user.zip_code || '',
           address: user.adress || '', // typo fix
           imageBase64: user.image,
+          imageBase64: user.password,
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -191,29 +201,37 @@ const [address, setAddress] = useState('')
   })
   
 
-    const handleEditUser = async (user) => {
-      console.log("🛠️ handleEditUser called with user:",user);
-    
-      if (!user?.id) {
-        console.error("❌ No user_id found. Aborting API call.");
-        return;
-      }
-    
-      try {
-        console.log("📡 Fetching user gateways from:", `${urls.userGateways}?user_id=${user.id}`);
-        const response = await axios.get(`${urls.userGateways}?user_id=${user.id}`);
-        console.log("✅ API Response:", response.data);
-        const userGateways = response.data.Gateways
+  const handleEditUser = () => {
+    const user_id = getUserIdFromLocalStorage();
   
-        const userData = {user , userGateways }
-    
-        // Navigate only if API call succeeds
-        navigate('/dashboard/create_user', { state: { userData } });
-        console.log("➡️ Navigating to /dashboard/create_user with user:", user);
-      } catch (error) {
-        console.error("❌ Error fetching Gateways:", error.response ? error.response.data : error.message);
-      }
-    };
+    console.log("🛠️ handleEditUser called with user:", user_id);
+  
+    if (!user_id) {
+      console.error("❌ No user_id found. Aborting API call.");
+      return;
+    }
+  
+    try {
+      const userData = {
+        user_id,
+        firstname,
+        lastname,
+        email,
+        contact,
+        password,
+        role,
+        zip_code: zipCode,
+        address,
+        image: image,
+      };
+  
+      navigate('/dashboard/create_user', { state: { userData } });
+      console.log("➡️ Navigating to /dashboard/create_user with user:", userData);
+    } catch (error) {
+      console.error("❌ Error in handleEditUser:", error.message);
+    }
+  };
+  
     
 
 // handleSubmit logic for posting the updated data
@@ -300,41 +318,7 @@ const handleSubmit = async (e) => {
   }
 };
 
-  // Fetch user data from API when component mounts
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!userId) return;
-      try {
-        const response = await axios.get(`${urls.fetchUser}?user_id=${getUserIdFromLocalStorage()}`);
-        const user = response.data[0]; // <-- important: get the first user object from array
-  
-        console.log('User data from api:', user);
-  
-        setFirstname(user.firstname);
-        setLastname(user.lastname);
-        setRole(user.role);
-        setEmail(user.email);
-        setImage(user.image);
-        setContact(user.contact || '');
-        setZipCode(user.zip_code || '');
-        setAddress(user.adress || ''); // typo fix: 'adress' not 'address' in your API
-  
-        setFormData({
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email,
-          contact: user.contact || '',
-          role: user.role,
-          zip_code: user.zip_code || '',
-          address: user.adress || '', // typo fix
-          imageBase64: user.image,
-        });
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-    fetchUserData();
-  }, [getUserIdFromLocalStorage()]);
+ 
   
   
 
@@ -475,9 +459,9 @@ const handleSubmit = async (e) => {
       height: '100%',  
     }}  
   >  
-    <Button size='small' variant="outlined" onClick={handleEditUser}>  
+    {/* <Button size='small' variant="outlined" onClick={handleEditUser}>  
       <Edit fontSize='small' /> Edit  
-    </Button>  
+    </Button>   */}
 
     <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={{ xs: 2, sm: 4 }}>  
       
@@ -530,6 +514,18 @@ const handleSubmit = async (e) => {
       <Box display="flex" alignItems="center" columnGap={1} mt={1}>  
         <Typography fontWeight="bold">Address:</Typography>  
         <Typography>{address}</Typography>  
+      </Box>
+    )}
+
+   { password && (
+      <Box display="flex" alignItems="center" columnGap={1} mt={1}>
+        <Typography fontWeight="bold">Password:</Typography>
+        <Typography>
+          {showPassword ? password : '••••••••'}
+        </Typography>
+        <IconButton onClick={toggleVisibility} size="small">
+          {showPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
       </Box>
     )}
   </Box>  

@@ -80,37 +80,44 @@ const ManageHardware = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const theme = useTheme()
 
-  // Fetch Data
-  useEffect(() => {
-    fetchAllHardware()
-  }, [])
-
   const fetchAllHardware = async () => {
     try {
-      const response = await axios.get(urls.totalGateways)
+      const response = await axios.get(urls.totalGateways);
       const transformedHardware = response.data.Gateways.map((item) => {
-        let deployStatus = 'Warehouse'
-
+        let deployStatus = 'Warehouse';
+  
         if (item.deploy_status === 'user_aloted') {
-          deployStatus = 'Assigned to User'
+          deployStatus = 'Assigned to User';
         } else if (item.deploy_status === 'deployed') {
-          deployStatus = 'Deployed to User'
+          deployStatus = 'Deployed to User';
         }
-
+  
         return {
           id: item.G_id,
           gateway_name: item.gateway_name,
           mac_address: item.mac_address,
           status: item.status,
           deploy_status: deployStatus,
-        }
-      })
-
-      setGateways(transformedHardware)
+        };
+      });
+  
+      console.log("hardwares: ", transformedHardware);
+      setGateways(transformedHardware);
     } catch (error) {
-      console.error('Error fetching gateway:', error)
+      console.error('Error fetching gateway:', error);
     }
-  }
+  };
+  
+  useEffect(() => {
+    fetchAllHardware(); // Call once on mount
+  
+    const intervalId = setInterval(() => {
+      fetchAllHardware(); // Poll projects every 5 seconds
+    }, 5000);
+  
+    return () => clearInterval(intervalId); // Clear interval on unmount
+  }, []);
+  
 
   // Handle Save in Modal
   const handleSave = async (gatewayName, macAddress) => {
@@ -195,22 +202,24 @@ const ManageHardware = () => {
         {(() => {
           const lowerSearchTerm = searchTerm.toLowerCase()
 
-          // Sorting: Matches appear at the top
-          const filteredGateways = [...gateways].sort((a, b) => {
-            const aMatch =
-              a.gateway_name.toLowerCase().includes(lowerSearchTerm) ||
-              a.mac_address.toLowerCase().includes(lowerSearchTerm)
-            const bMatch =
-              b.gateway_name.toLowerCase().includes(lowerSearchTerm) ||
-              b.mac_address.toLowerCase().includes(lowerSearchTerm)
-            return bMatch - aMatch // Moves matches to the top
-          })
+
+
+          const filteredGateways = gateways.filter((gateway) => {
+            const nameMatch = gateway.gateway_name?.toLowerCase().includes(lowerSearchTerm);
+            const macMatch = gateway.mac_address?.toLowerCase().includes(lowerSearchTerm);
+            const statusMatch = gateway.deploy_status?.toLowerCase().includes(lowerSearchTerm);
+          
+            return nameMatch || macMatch || statusMatch;
+          });
+          
 
           return (
             <TableContainer component={Paper} sx={{ marginTop: 2 }}>
               <Table>
                 <TableHead>
                   <TableRow sx={{ background: theme.palette.background.paper }}>
+                  <TableCell style={{ fontWeight: 'bold' }}>Sr No</TableCell>
+
                     <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Gateway Name</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>MAC Address</TableCell>
@@ -220,8 +229,10 @@ const ManageHardware = () => {
                 </TableHead>
                 <TableBody>
                   {filteredGateways.length > 0 ? (
-                    filteredGateways.map((gateway) => (
+                    filteredGateways.map((gateway, index) => (
                       <TableRow key={gateway.id}>
+                                                <TableCell>{index + 1}</TableCell>
+
                         <TableCell>{gateway.id}</TableCell>
                         <TableCell>{gateway.gateway_name}</TableCell>
                         <TableCell>{gateway.mac_address}</TableCell>

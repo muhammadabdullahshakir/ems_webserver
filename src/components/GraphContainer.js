@@ -5,20 +5,7 @@ import GraphCard from './GraphCard';
 const GraphContainer = () => {
   const [solarValues, setSolarValues] = useState([]);
 
-  useEffect(() => {
-    const fetchSolarData = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/api/power-data/?gateway_id=1");
-        const json = await res.json();
-        const values = json.data.map(item => item.total_solar).slice(0, 7);
-        setSolarValues(values);
-      } catch (err) {
-        console.error("Error fetching solar data:", err);
-      }
-    };
 
-    fetchSolarData();
-  }, []);
 
   const graphDataArray = [
     {
@@ -27,7 +14,7 @@ const GraphContainer = () => {
       bg: 'linear-gradient(to top,rgb(31,31,32), rgb(59,59,66))',
       data: {
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        values: solarValues.length ? solarValues : [0, 0, 0, 0, 0, 0, 0], // fallback while loading
+        values: [15, 25, 18, 32, 28, 20, 35], // fallback while loading
       }
     },
     {

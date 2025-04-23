@@ -11,6 +11,7 @@ const urls = {
   getUserProjects: () => `${API_Base_url}/get_project_manager/${getUserIdFromLocalStorage()}/`, // Uses helper
 
   deleteUser: (userId) => `${API_Base_url}/delete_user/${userId}/`,
+  deleteGateway: `${API_Base_url}/delete_hardware`,
   updateUser: (userId) => `${API_Base_url}/update_user/${userId}/`, //update the user
   userData: (userId) => `${API_Base_url}/fetch_users/${userId}/`,
   fetchUser: `${API_Base_url}/fetch_users/`, //list of user shows to admin
@@ -27,7 +28,8 @@ const urls = {
   totalProject: `${API_Base_url}/total_project/`, //total project count
   usertotalProject: `${API_Base_url}/get_user_project_count/${getUserIdFromLocalStorage()}/`, //total project count
   get_deployed_gateway_count: `${API_Base_url}/get_deployed_gateway_count/?user_id=${getUserIdFromLocalStorage()}`, // total project count
-
+  fetch_highchart_data: `${API_Base_url}/fetch_highchart_data`,
+  fetch_single_highchart_data: `${API_Base_url}/fetch_single_highchart_data`,
   fetchActiveProject: `${API_Base_url}/active_project/`, //active project count
   logout: `${API_Base_url}/logout/`, 
   fetchBoxList: `${API_Base_url}/get_boxes/`, //fetching boxes list that are not usedd yet

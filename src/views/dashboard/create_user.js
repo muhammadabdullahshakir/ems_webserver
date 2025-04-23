@@ -86,20 +86,29 @@ const CreateUser = () => {
     }
   }, [location.state]);
 
-  useEffect(() => {
-    const fetchUnassignedGateway = async () => {
-      try {
-        const response = await axios.get(urls.unassignedGateway);
-        setUnassignedGateway(response.data.UnassignedGateways ?? []);
-      } catch (error) {
-        console.error('Error fetching Unassigned Gateways:', error);
-        setUnassignedGateway([]);
-      }
-    };
-    fetchUnassignedGateway();
-    const intervalId = setInterval(fetchUnassignedGateway, 5000);
-    return () => clearInterval(intervalId);
-  }, []);
+useEffect(() => {
+  const fetchUnassignedGateway = async () => {
+    try {
+      const userId = localStorage.getItem('user_id'); // Or use getUserIdFromLocalStorage()
+      const response = await axios.get(urls.unassignedGateway);
+
+      // Filter gateways by created_by_id
+      const filteredGateways = (response.data.UnassignedGateways ?? []).filter(
+        (gateway) => String(gateway.created_by_id) === String(getUserIdFromLocalStorage())
+      );
+
+      setUnassignedGateway(filteredGateways);
+    } catch (error) {
+      console.error('Error fetching Unassigned Gateways:', error);
+      setUnassignedGateway([]);
+    }
+  };
+
+  fetchUnassignedGateway();
+  const intervalId = setInterval(fetchUnassignedGateway, 5000);
+  return () => clearInterval(intervalId);
+}, []);
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

@@ -61,7 +61,7 @@ const AppSidebar = () => {
   
   // Filter navigation based on user role
   const roleNavConfig = {
-    superadmin: _nav.filter(item => ['DashBoard','Dash-Board','Pages', 'Manage Admins', 'Manage Admin', 'Manage Gateway','Invoices', 'Notification',].includes(item.name)),
+    superadmin: _nav.filter(item => ['DashBoard','Dash-Board','Pages', 'Manage Admins', 'Manage Admin','Create Admin', 'Manage Gateway','Invoices', 'Notification',].includes(item.name)),
     admin: _nav.filter(item => ['DashBoard','Dashboard','Pages', 'Manage Users', 'Create User', 'Manage Hardware', 'Manage Invoices', 'View Invoices'].includes(item.name)),
     user: _nav.filter(item => ['DashBoard','Dashboard','Pages', 'Analytics', 'Invoices', 'User Details'].includes(item.name)),
     // Add more roles as needed
@@ -84,7 +84,7 @@ const AppSidebar = () => {
         <CSidebarBrand to="/">
           {/* Logo Image */}
           <img
-            src={logo}
+            src="https://mexemai.com/bucket/ems/image/022.png"
             alt="Logo"
             style={{
               height: '120px',

@@ -37,12 +37,12 @@ const Dashboard = () => {
   const [hardwareCount, setHardwareCount] = useState(0)
   const [deployedHardwareCount, setDeployedHardwareCount] = useState(0)
   const [userdeployedHardwareCount, setUserDeployedHardwareCount] = useState(0)
-
   const [userAlotedGatewaysCount, setUserAlotedGatewaysCount] = useState(0)
   const [totalProjectsCount, setTotalProjectsCount] = useState(0)
   const [userProjectsCount, setUserProjectsCount] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [projects, setProjects] = useState([])
+  const[adminHardwareCount, setAdminHardwareCount] = useState(0)
 
 
   const id = projects.PM_id
@@ -50,6 +50,7 @@ const Dashboard = () => {
   const [role, setRole] = useState('');
   const [userProjects, setUserProjects] = useState([]);
   const [totalUserGateways, setTotalUserGateways] = useState([]);
+  const [adminGatewayCount, setAdminGatewayCount] = useState(0);
 
 
   
@@ -139,6 +140,92 @@ const Dashboard = () => {
       return () => clearInterval(intervalId);
     }, []);
     
+    
+ //fetch admin hardware count
+ useEffect(() => {
+ const fetchAdminHardwareCount = async () => {
+  try {
+    const response = await axios.get(urls.totalGateways);
+    const userId = getUserIdFromLocalStorage();
+
+    const filteredData = response.data.Gateways.filter(
+      (item) => String(item.created_by_id) === String(userId)
+    );
+
+    // Get the count directly from filteredData
+    const filteredHardwareCount = filteredData.length;
+    
+    // Set the count directly to state
+    setAdminGatewayCount(filteredHardwareCount); // 👈 Fixed here
+    console.log('Filtered hardware count:', filteredHardwareCount);
+
+    // Remove the transformedHardware mapping as it's not needed for the count
+  } catch (error) {
+    console.error('Error fetching gateway:', error);
+  }
+};
+fetchAdminHardwareCount();
+const intervalId = setInterval(fetchAdminHardwareCount, 5000);
+return () => clearInterval(intervalId);
+}, []);
+
+//admin user allotedcount
+
+// Add new state for user-alloted count
+const [userAllotedCount, setUserAllotedCount] = useState(0);
+const [adminDeployedCount, setAdminDeployedCount] = useState(0);
+
+// Add this useEffect hook
+useEffect(() => {
+  const fetchUserDeployedCount = async () => {
+    try {
+      const response = await axios.get(urls.totalGateways);
+      const userId = getUserIdFromLocalStorage();
+
+      const filteredData = response.data.Gateways.filter(
+        (item) => 
+          String(item.created_by_id) === String(userId) && 
+          item.deploy_status === "deployed"
+      );
+
+      const allotedCount = filteredData.length;
+      setAdminDeployedCount(allotedCount);
+      console.log('User-alloted hardware count:', allotedCount);
+    } catch (error) {
+      console.error('Error fetching gateway:', error);
+    }
+  };
+
+  fetchUserDeployedCount();
+  const intervalId = setInterval(fetchUserDeployedCount, 5000);
+  return () => clearInterval(intervalId);
+}, []);
+
+// Add this useEffect hook
+useEffect(() => {
+  const fetchUserAllotedCount = async () => {
+    try {
+      const response = await axios.get(urls.totalGateways);
+      const userId = getUserIdFromLocalStorage();
+
+      const filteredData = response.data.Gateways.filter(
+        (item) => 
+          String(item.created_by_id) === String(userId) && 
+          item.deploy_status === "user_aloted"
+      );
+
+      const allotedCount = filteredData.length;
+      setUserAllotedCount(allotedCount);
+      console.log('User-alloted hardware count:', allotedCount);
+    } catch (error) {
+      console.error('Error fetching gateway:', error);
+    }
+  };
+
+  fetchUserAllotedCount();
+  const intervalId = setInterval(fetchUserAllotedCount, 5000);
+  return () => clearInterval(intervalId);
+}, []);
 
 
   // Fetch Total Hardware
@@ -362,13 +449,36 @@ const Dashboard = () => {
         icon={<PeopleIcon fontSize="large" />}
         bgColor="linear-gradient(135deg,rgb(103, 182, 247),rgb(50, 120, 185))" // Blue
       />}
-      { role === 'admin' &&
-        <WidgetsDropdown
-          title={loading ? 'Loading...' : hardwareCount}
-          subtitle="Total Hardware"
-          icon={<DevicesIcon fontSize="large" />}
-          bgColor="linear-gradient(135deg,rgb(131, 219, 136), #43a047)" // Green
-        />}
+
+
+
+        {/*admin cards*/}
+        {role === 'admin' &&
+          <WidgetsDropdown
+            title={loading ? 'Loading...' : adminGatewayCount}
+            subtitle="Total Hardware"
+            icon={<DevicesIcon fontSize="large" />}
+            bgColor="linear-gradient(135deg,rgb(131, 219, 136), #43a047)" // Green
+          />}
+
+        {role === 'admin' && (
+          <WidgetsDropdown
+            title={loading ? 'Loading...' : userAllotedCount}
+            subtitle="Aloted Hardware"
+            icon={<CheckCircleIcon fontSize="large" />}
+            bgColor="linear-gradient(135deg,rgb(248, 205, 141), #fb8c00)" // Orange
+          />)}
+
+        {role === 'admin' && (<WidgetsDropdown
+          title={loading ? 'Loading...' : adminDeployedCount}
+          subtitle="Deployed Hardware"
+          icon={<CloudUploadIcon fontSize="large" />}
+          bgColor="linear-gradient(135deg,rgb(187, 155, 243), #5e35b1)" // Purple
+        />)}
+
+
+
+
         {role === 'user' && (
   <WidgetsDropdown
     title={loading ? 'Loading...' : totalUserGateways}
@@ -377,13 +487,7 @@ const Dashboard = () => {
     bgColor="linear-gradient(135deg, rgb(131, 219, 136), #43a047)" // Green
   />
 )}
-{role === 'admin' && (
-        <WidgetsDropdown
-          title={loading ? 'Loading...' : userAlotedGatewaysCount}
-          subtitle="Aloted Hardware"
-          icon={<CheckCircleIcon fontSize="large" />}
-          bgColor="linear-gradient(135deg,rgb(248, 205, 141), #fb8c00)" // Orange
-        />)}
+
  {role === 'user' && (
 <WidgetsDropdown
           title={loading ? 'Loading...' : totalUserGateways}
@@ -391,12 +495,7 @@ const Dashboard = () => {
           icon={<CheckCircleIcon fontSize="large" />}
           bgColor="linear-gradient(135deg,rgb(248, 205, 141), #fb8c00)" // Orange
         />)}
-                {role === 'admin' && (<WidgetsDropdown
-          title={loading ? 'Loading...' : deployedHardwareCount}
-          subtitle="Deployed Hardware"
-          icon={<CloudUploadIcon fontSize="large" />}
-          bgColor="linear-gradient(135deg,rgb(187, 155, 243), #5e35b1)" // Purple
-        />)}
+
         {role === 'user' && (<WidgetsDropdown
           title={loading ? 'Loading...' : userdeployedHardwareCount}
           subtitle="Deployed Hardware"

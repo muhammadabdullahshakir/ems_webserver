@@ -8,6 +8,11 @@ import {
   TableCell,
   TableHead,
   TableRow,
+   Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+  IconButton,
   TableBody,
   Button,
   TextField,
@@ -17,6 +22,10 @@ import urls from '../../urls/urls'
 import { Plus } from 'lucide-react'
 import axios from 'axios'
 import { ColorModeContext } from '../theme/ThemeContext'
+import { getUserIdFromLocalStorage } from '../../data/localStorage';
+import {  Delete } from '@mui/icons-material'
+
+
 
 
 // Modal Component with Bounce Effect
@@ -79,11 +88,20 @@ const ManageHardware = () => {
   const [isModalOpen, setIsModalOpen] = useState(false) // State for modal visibility
   const [searchTerm, setSearchTerm] = useState('')
   const theme = useTheme()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedGatewayId, setSelectedGatewayId] = useState(null);
+
 
   const fetchAllHardware = async () => {
     try {
       const response = await axios.get(urls.totalGateways);
-      const transformedHardware = response.data.Gateways.map((item) => {
+      const userId = getUserIdFromLocalStorage();
+  
+      const filteredData = response.data.Gateways.filter(
+        (item) => String(item.created_by_id) === String(userId) // filter by match
+      );
+  
+      const transformedHardware = filteredData.map((item) => {
         let deployStatus = 'Warehouse';
   
         if (item.deploy_status === 'user_aloted') {
@@ -101,12 +119,30 @@ const ManageHardware = () => {
         };
       });
   
-      console.log("hardwares: ", transformedHardware);
+      console.log('Filtered hardware:', transformedHardware);
       setGateways(transformedHardware);
     } catch (error) {
       console.error('Error fetching gateway:', error);
     }
   };
+
+  const handleDeleteClick = (gatewayId) => {
+    setSelectedGatewayId(gatewayId);
+    setDeleteDialogOpen(true);
+  };
+  
+  const confirmDelete = async () => {
+    try {
+      await axios.post(`${urls.deleteGateway}/${selectedGatewayId}/`);
+      setDeleteDialogOpen(false);
+      fetchAllHardware(); // Refresh the table
+    } catch (error) {
+      console.error('Error deleting gateway:', error);
+      setDeleteDialogOpen(false);
+    }
+  };
+  
+  
   
   useEffect(() => {
     fetchAllHardware(); // Call once on mount
@@ -126,6 +162,8 @@ const ManageHardware = () => {
       const response = await axios.post(urls.createGateway, {
         gateway_name: gatewayName,
         mac_address: macAddress,
+        created_by_id: getUserIdFromLocalStorage()
+
       })
 
       if (response.data.success) {
@@ -225,6 +263,8 @@ const ManageHardware = () => {
                     <TableCell style={{ fontWeight: 'bold' }}>MAC Address</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Status</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Deployment Status</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Action</TableCell>
+
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -287,6 +327,12 @@ const ManageHardware = () => {
     {gateway.deploy_status}
   </Button>
 </TableCell>
+<TableCell>
+<IconButton color="error" onClick={() => handleDeleteClick(gateway.id)}>
+  <Delete />
+</IconButton>
+
+</TableCell>
 
                       </TableRow>
                     ))
@@ -303,6 +349,25 @@ const ManageHardware = () => {
           )
         })()}
       </Box>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+  <Box p={3}>
+    <Typography variant="h6" gutterBottom>
+      Confirm Deletion
+    </Typography>
+    <Typography variant="body1" gutterBottom>
+      Are you sure you want to permanently delete this hardware?
+    </Typography>
+    <Box mt={2} display="flex" justifyContent="flex-end" gap={2}>
+      <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined" color="primary">
+        Cancel
+      </Button>
+      <Button onClick={confirmDelete} variant="contained" color="error">
+        Delete
+      </Button>
+    </Box>
+  </Box>
+</Dialog>
+
 
       {/* Add CSS Styles */}
       <style>

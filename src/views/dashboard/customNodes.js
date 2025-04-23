@@ -9,7 +9,7 @@ import { ArrowBack, ArrowForward } from "@mui/icons-material";
 const iconMapping = {
   solar: (
     <img
-      src={solarpanel}
+      src="https://mexemai.com/bucket/ems/image/solarpanell.png"
       alt="Solar Panel"
       style={{
         width: "30px",
@@ -22,7 +22,7 @@ const iconMapping = {
   ),
   genset: (
     <img
-      src={gen}
+      src="https://mexemai.com/bucket/ems/image/genset.png"
       alt="Genset"
       style={{
         width: "30px",
@@ -35,7 +35,7 @@ const iconMapping = {
   ),
   load: (
     <img
-      src={load1}
+      src="https://mexemai.com/bucket/ems/image/load1.png"
       alt="Load"
       style={{
         width: "30px",
@@ -48,7 +48,7 @@ const iconMapping = {
   ),
   grid: (
     <img
-      src={pole}
+      src="https://mexemai.com/bucket/ems/image/electric-pole.png"
       alt="Electric Pole"
       style={{
         width: "30px",

@@ -107,6 +107,15 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'Create Admin',
+    to: '/dashboard/CreateAdmin',
+    icon: <CIcon icon={cilGroup} customClassName="nav-icon" />, 
+    badge: {
+      color: 'info',
+    },
+  },
+  {
+    component: CNavItem,
     name: 'Manage Gateway',
     to: '/dashboard/manage_gateway',
     icon: <CIcon icon={cilMemory} customClassName="nav-icon" />, 

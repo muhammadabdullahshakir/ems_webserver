@@ -47,38 +47,40 @@ const GraphContainer = () => {
   ];
 
   return (
+<Grid
+  container
+  spacing={2}
+  sx={{
+    pt: 2,
+    justifyContent: 'center', // center cards instead of spacing them out
+  }}
+>
+  {graphDataArray.map((card, index) => (
     <Grid
-      container
-      spacing={2}
+      key={index}
+      item
+      xs={12}
+      sm={6}
+      md={4}
+      lg={3}
       sx={{
-        pt: 2,
         display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between'
+        justifyContent: 'center',
       }}
     >
-      {graphDataArray.map((card, index) => (
-        <Grid
-          key={index}
-          item
-          xs={12}
-          sm={6}
-          md={3}
-          sx={{
-            flexGrow: 1,
-            minWidth: '250px',
-          }}
-        >
-          <GraphCard
-            title={card.title}
-            subTitle={''}
-            caption={card.caption}
-            gradientGraphbg={card.bg}
-            graphData={card.data}
-          />
-        </Grid>
-      ))}
+      <Box sx={{ width: '100%', maxWidth: 320 }}> {/* You can tweak maxWidth */}
+        <GraphCard
+          title={card.title}
+          subTitle={''}
+          caption={card.caption}
+          gradientGraphbg={card.bg}
+          graphData={card.data}
+        />
+      </Box>
     </Grid>
+  ))}
+</Grid>
+
   );
 };
 

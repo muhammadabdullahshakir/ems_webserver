@@ -8,6 +8,7 @@ import { ThemeContextProvider } from './views/theme/ThemeContext';
 import { UserProvider } from './Context/UserContext';
 import AccessDenied from './views/AccessDenied/AccessDenied';
 import ProtectedRoute from '../src/components/ProtectedRoutes'; // Import your ProtectedRoute
+import { AuthProvider } from './Context/AuthContext'
 
 // Pages
 const Login = React.lazy(() => import('./views/pages/login/Login'));
@@ -33,8 +34,10 @@ const App = () => {
     }, []);
 
     return (
+        
         <UserProvider>
-            <ThemeContextProvider>
+            <AuthProvider>
+          <ThemeContextProvider>
                 <Router>
                     <Suspense
                         fallback={
@@ -55,8 +58,10 @@ const App = () => {
                         </Routes>
                     </Suspense>
                 </Router>
-            </ThemeContextProvider>
-        </UserProvider>
+                </ThemeContextProvider>
+                </AuthProvider>
+    </UserProvider>
+
     );
 };
 

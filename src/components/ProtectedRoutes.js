@@ -1,7 +1,8 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../Context/AuthContext'
 
 const ProtectedRoute = () => {
-  const user = JSON.parse(localStorage.getItem("user")); // Parse the stored data
+  const { user } = useAuth();
 
   return user ? <Outlet /> : <Navigate to="/login" replace />;
 };

@@ -30,6 +30,13 @@ const AddProject = () => {
       const [latitude, setLatitude] = useState('');
       const [address, setAddress] = useState('');
         const theme = useTheme()
+        const [errors, setErrors] = useState({
+          projectName: '',
+          longitude: '',
+          latitude: '',
+          address: '',
+        });
+        
       
       const handleClose = () => {
         setOpen(false);
@@ -39,35 +46,40 @@ const AddProject = () => {
         setAddress('');
       };
 
-       const handleSave = async () => {
-          if (!projectName || !longitude || !latitude || !address) return;
-      
-          const user = getUserFromLocalStorage();  // Get user data from localStorage
-          const newProject = {
-            name: projectName,
-            longitude,
-            latitude,
-            address,
-            user_id: user ? user.user_id : null,  // Add user_id to the project data
-          };
-      
-          try {
-            console.log("Saving project with data:", newProject);  // Log the project data
-      
-            const response = await axios.post(urls.createProject, newProject);
-      
-            console.log("Response Data:", response.data);  // Log the response data
-      
-            if (response.data) {
-              console.log("Project Added:", response.data);
-              fetchProjects();  // Re-fetch projects to get updated data from API
-            }
-      
-            handleClose();
-          } catch (error) {
-            console.error("Error Posting Project", error.response || error.message || error);
-          }
+      const handleSave = async () => {
+        const newErrors = {
+          projectName: projectName ? '' : 'Project name is required',
+          longitude: /^\d*\.?\d+$/.test(longitude) ? '' : longitude ? 'Only numbers allowed' : 'Longitude is required',
+          latitude: /^\d*\.?\d+$/.test(latitude) ? '' : latitude ? 'Only numbers allowed' : 'Latitude is required',
+          address: address ? '' : 'Address is required',
         };
+      
+        setErrors(newErrors);
+      
+        const hasError = Object.values(newErrors).some(err => err);
+        if (hasError) return;
+      
+        const user = getUserFromLocalStorage();
+      
+        const newProject = {
+          name: projectName,
+          longitude,
+          latitude,
+          address,
+          user_id: user ? user.user_id : null,
+        };
+      
+        try {
+          const response = await axios.post(urls.createProject, newProject);
+          if (response.data) {
+            fetchProjects();
+          }
+          handleClose();
+        } catch (error) {
+          console.error("Error Posting Project", error.response || error.message || error);
+        }
+      };
+      
 
           const fetchProjects = async () => {
             try {
@@ -131,13 +143,50 @@ const AddProject = () => {
                 </IconButton>
                 <DialogContent dividers>
                   <Box display={"flex"} flexDirection={"column"} rowGap={2} width="100%">
-                    <TextField size="small" fullWidth label="Project Name" variant="outlined" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
-                    <TextField size="small" fullWidth label="Longitude" variant="outlined" value={longitude} onChange={(e) => setLongitude(e.target.value)} inputProps={{ inputMode: 'decimal', pattern: '[0-9]*' }}
-                    />
-                    <TextField size="small" fullWidth label="Latitude" variant="outlined" value={latitude} onChange={(e) => setLatitude(e.target.value)} inputProps={{ inputMode: 'decimal', pattern: '[0-9]*' }}
-                    />
-                    <TextField size="small" fullWidth label="Address" variant="outlined" value={address} onChange={(e) => setAddress(e.target.value)} />
-                  </Box>
+                  <TextField
+  size="small"
+  fullWidth
+  label="Project Name"
+  variant="outlined"
+  value={projectName}
+  onChange={(e) => setProjectName(e.target.value)}
+  error={Boolean(errors.projectName)}
+  helperText={errors.projectName}
+/>
+
+<TextField
+  size="small"
+  fullWidth
+  label="Longitude"
+  variant="outlined"
+  value={longitude}
+  onChange={(e) => setLongitude(e.target.value)}
+  error={Boolean(errors.longitude)}
+  helperText={errors.longitude}
+/>
+
+<TextField
+  size="small"
+  fullWidth
+  label="Latitude"
+  variant="outlined"
+  value={latitude}
+  onChange={(e) => setLatitude(e.target.value)}
+  error={Boolean(errors.latitude)}
+  helperText={errors.latitude}
+/>
+
+<TextField
+  size="small"
+  fullWidth
+  label="Address"
+  variant="outlined"
+  value={address}
+  onChange={(e) => setAddress(e.target.value)}
+  error={Boolean(errors.address)}
+  helperText={errors.address}
+/>
+ </Box>
                 </DialogContent>
                 <DialogActions>
                   <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>

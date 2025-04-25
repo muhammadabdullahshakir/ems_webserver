@@ -16,6 +16,7 @@ import {
   DialogContent,
   useTheme,
   Divider,
+  useMediaQuery 
 } from '@mui/material'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
@@ -146,6 +147,8 @@ const initialEdges = [
 ]
 
 const ProjectManager = () => {
+  const theme = useTheme()
+
   const location = useLocation()
   const navigate = useNavigate()
   const projectName = location.state?.projectName || 'Unknown Project'
@@ -169,6 +172,8 @@ const ProjectManager = () => {
   const [newEdges, setNewEdges] = useState(initialEdges)
    const [role, setRole] = useState('');
 
+   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+   
   useEffect(() => {
     // Retrieve user data from localStorage
     const user = JSON.parse(localStorage.getItem('user'));
@@ -176,7 +181,6 @@ const ProjectManager = () => {
       setRole(user.role || ''); // Set role from localStorage
     }
   }, []);
-  const theme = useTheme()
   // console.log('dropdowm:', selectedGatewayForDropDown)
 
   // dynamically updated the animation
@@ -280,33 +284,54 @@ const handleGatewayChange = (event) => {
   }
 
   fetchDeployedGateways()
+ 
+  const intervalId = setInterval(fetchDeployedGateways, 5000)
+  return () => clearInterval(intervalId)
+  
 }, [project_id])
 
 
   ////// fetchweatherdata //////
   useEffect(() => {
     const fetchWeatherData = async () => {
+      if (!latitude || !longitude) {
+        console.warn('Latitude and Longitude not available')
+        // Just set default dummy weather data instead of skipping everything
+        setWeatherData({
+          currentConditions: { temp: 0 },
+          days: [{ hours: Array.from({ length: 24 }, () => ({ temp: 0 })) }]
+        })
+        return
+      }
+  
       try {
-        const apiUrl =
-          'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Islamabad,Pakistan?key=CGYB7C92LET4UR7F9YY2TWYLS'
+        const apiUrl = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${latitude},${longitude}?key=CGYB7C92LET4UR7F9YY2TWYLS`
+  
         const response = await fetch(apiUrl)
         const data = await response.json()
         console.log('weather', data)
-
-        // ✅ Convert Fahrenheit to Celsius for accurate display
+  
+        // Convert Fahrenheit to Celsius
         data.currentConditions.temp = ((data.currentConditions.temp - 32) * 5) / 9
         data.days[0].hours.forEach((hour) => {
           hour.temp = ((hour.temp - 32) * 5) / 9
         })
-
+  
         setWeatherData(data)
       } catch (error) {
         console.error('Error fetching weather data:', error)
+        // If fetch fails, fallback to 0 temp
+        setWeatherData({
+          currentConditions: { temp: 0 },
+          days: [{ hours: Array.from({ length: 24 }, () => ({ temp: 0 })) }]
+        })
       }
     }
-
+  
     fetchWeatherData()
-  }, [])
+  }, [latitude, longitude])
+  
+  
 
   /////// fetchDeployedGatewaysForDropdown //////
   useEffect(() => {
@@ -401,9 +426,20 @@ const handleGatewayChange = (event) => {
 
   const getNextHours = (hours) => {
     if (!hours || !Array.isArray(hours)) return []
+  
     const currentHour = new Date().getHours()
-    return hours.filter((hour) => parseInt(hour.datetime.split(':')[0]) >= currentHour).slice(0, 5)
+  
+    return hours
+      .filter((hour) => {
+        // Make sure hour.datetime exists and is a string
+        if (!hour.datetime || typeof hour.datetime !== 'string') return false
+  
+        const hourValue = parseInt(hour.datetime.split(':')[0])
+        return hourValue >= currentHour
+      })
+      .slice(0, 5)
   }
+  
 
   const getWeatherIcon = (temp, conditions) => {
     if (!temp || !conditions) return null; // ✅ Handle missing values
@@ -536,64 +572,41 @@ const handleGatewayChange = (event) => {
              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
               >
-            <Box
-              sx={{
-                //background: theme.palette.background.paper,
-                p: "25px",
-                borderRadius: "10px",
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                border: '1px solid #ddd',
-                color: theme.palette.text.TextColor,
-                maxHeight: "690px", // Increased height
-                minHeight: "490px", // Increased height
-                display: "flex",
-                flexDirection: "column",
-                
-                position: "relative",
-                overflow: "hidden",
-                background: `linear-gradient(to right, rgba(201, 202, 203, 0.91), rgba(209, 207, 207, 0.3)), 
-            url('https://i0.wp.com/calmatters.org/wp-content/uploads/2021/11/clean-energy-power-grid.jpg?fit=1836%2C1059&ssl=1') center/cover no-repeat`,
-                
-              }}
-            >
-              {/* Top Left "Welcome Back" */}
-              <Typography
-                variant="h6"
-                color= '#494a4f'//'{{theme.palette.text.TextColor}}'
-                sx={{
-                  position: "absolute",
-                  top: 40,
-                  left: 25,
-                  fontWeight: "bold",
-                  opacity: 0.9,
-                  
-                }}
-              >
-              👋 Welcome Back
-                </Typography>
-                <br/>
-                {/* Centered Project Name */}
-                <Typography
-                  variant="h2"
-                  fontWeight="light"
-                  color = '#494a4f'//'{{theme.palette.text.TextColor}}'
-                  sx={{
-                    
-                    top:200,
-                    textAlign: "center",
-                    fontSize: "3.5rem",
-                  }}
-                >
-              {projectName}
-            </Typography>
+<Box
+  sx={{
+    p: { xs: '15px', sm: '20px', md: '25px' },
+    borderRadius: '10px',
+    maxHeight: { xs: 'auto', md: '690px' },
+    minHeight: { xs: '300px', md: '490px' },
+    display: "flex",
+    flexDirection: "column",
+    background: `linear-gradient(to right, rgba(201, 202, 203, 0.91), rgba(209, 207, 207, 0.3)), 
+      url('https://i0.wp.com/calmatters.org/wp-content/uploads/2021/11/clean-energy-power-grid.jpg?fit=1836%2C1059&ssl=1') center/cover no-repeat`,
+  }}
+>
+  <Typography
+    variant="h6"
+    sx={{
+      top: 30,
+      left: 20,
+      fontSize: { xs: '1rem', sm: '1.2rem' },
+    }}
+  >
+    👋 Welcome Back
+  </Typography>
 
-            {/* Bottom Section with Location Info */}
-            <Box sx={{ textAlign: "center", opacity: 0.9 , color:'black'}}>
-              
-              <Typography sx={{ fontSize: "1rem" }}></Typography>
-            </Box>
-            
-            </Box>
+  <Typography
+    variant="h2"
+    sx={{
+      fontSize: { xs: '2rem', sm: '3rem', md: '3.5rem' },
+      textAlign: "center",
+      mt: { xs: 4, md: 10 }
+    }}
+  >
+    {projectName}
+  </Typography>
+</Box>
+
             </motion.div>
           </Grid>
 
@@ -1019,10 +1032,10 @@ const handleGatewayChange = (event) => {
           )}
         </Grid>
 
-        {/* ✅ NEW GRID: GuageChart */}
+ 
         <Grid container spacing={2} mt={2}>
           {/* ✅ First Box - Only Solar Cost Bar Charts */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} height={450}> 
             {selectedGatewayForDropDown && (
               <Box
                 sx={{
@@ -1072,10 +1085,10 @@ const handleGatewayChange = (event) => {
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}
                   fitView={true}
-                  style={{ width: '100%', height: '100%' }}
+                  
                   zoomOnScroll={true}
                   panOnScroll={false}
-                  panOnDrag={true}
+                  panOnDrag={false}
                   nodesDraggable={false}
                   proOptions={{ hideAttribution: true }}
                 />
@@ -1100,7 +1113,7 @@ const handleGatewayChange = (event) => {
         }}
       >
         <Typography textAlign="center" fontWeight="bold">
-          Solar Usage
+          Solar Production
         </Typography>
          <Box mt={2}>
         <SolarUsage />
@@ -1128,7 +1141,7 @@ const handleGatewayChange = (event) => {
         }}
       >
         <Typography textAlign="center" fontWeight="bold">
-          Grid Usage
+          Load Consumed
         </Typography>
          <Box mt={2}>
         <GridUsage />

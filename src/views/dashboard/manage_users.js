@@ -44,38 +44,39 @@ const ManageUsers = () => {
   const theme = useTheme()
 
   // Fetch Users from API
-  const fetchUsers = async () => {
-    try {
-      const loggedInUserId = localStorage.getItem('user_id') // Get user_id from localStorage
-  
-      const response = await axios.get(urls.fetchUser)
-      console.log('Response data:', response.data)
-  
-      // Filter users: only show users with role "user" AND created_by = loggedInUserId
-      const transformedUsers = response.data
-        .filter(user => user.role === 'user' && String(user.created_by_id) === String(getUserIdFromLocalStorage()))
-        .map((user) => ({
-          id: user.user_id,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email,
-          contact: user.contact,
-          address: user.adress,
-          zip_code: user.zip_code,
-          role: user.role,
-          image: user.image 
-        }))
-  
-      setUsers(transformedUsers)
-      console.log('Filtered Users (Only users created by this admin):', transformedUsers)
-    } catch (error) {
-      console.error('Error fetching users:', error)
-    }
-  }
+
   
   
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const loggedInUserId = localStorage.getItem('user_id') // Get user_id from localStorage
+    
+        const response = await axios.get(urls.fetchUser)
+        console.log('Response data:', response.data)
+    
+        // Filter users: only show users with role "user" AND created_by = loggedInUserId
+        const transformedUsers = response.data
+          .filter(user => user.role === 'user' && String(user.created_by_id) === String(getUserIdFromLocalStorage()))
+          .map((user) => ({
+            id: user.user_id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            contact: user.contact,
+            address: user.adress,
+            zip_code: user.zip_code,
+            role: user.role,
+            image: user.image 
+          }))
+    
+        setUsers(transformedUsers)
+        console.log('Filtered Users (Only users created by this admin):', transformedUsers)
+      } catch (error) {
+        console.error('Error fetching users:', error)
+      }
+    }
     fetchUsers()
     const intervalId = setInterval(fetchUsers, 5000)
     return () => clearInterval(intervalId)

@@ -81,7 +81,7 @@ function ProjectChart() {
           >
             <HighCharts
               ref={chartRef} // Store HighCharts reference
-              data={[{ name: "Solar Usage", data: chartData }]}
+              data={[{ name: "Grid In", data: chartData }]}
               yAxisLabel="Power (kW)"
               type="spline"
             />

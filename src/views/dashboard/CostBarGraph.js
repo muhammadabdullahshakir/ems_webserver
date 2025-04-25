@@ -2,6 +2,7 @@ import * as React from 'react';
 import { BarChart, BarLabel } from '@mui/x-charts/BarChart';
 import { dataset, valueFormatter } from '../../data/ChartsData/CostData';
 import { Height, Padding } from '@mui/icons-material';
+import { Box } from 'lucide-react';
 
 const chartSetting = {
   xAxis: [
@@ -23,6 +24,7 @@ height:400
 
 export default function CostBarGraph() {
   return (
+      
      <BarChart
       sx={{ width: '100%' }}
       dataset={dataset}

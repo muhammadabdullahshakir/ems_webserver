@@ -6,11 +6,12 @@ import Visibility from "@mui/icons-material/Visibility";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import frame from "../.././../assets/images/ems logo.svg";
-import frame1 from "../../../assets/images/profile.svg.png";
+import frame1 from "../../../assets/images/profile.svg";
 import urls from "../../../urls/urls";
 import { InputAdornment } from "@mui/material";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { useAuth } from '../../../Context/AuthContext';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +20,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState(""); // Define state for role
   const navigate = useNavigate();
+  const { login } = useAuth();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,12 +53,10 @@ const Login = () => {
         // Set role in state
         setRole(role); // This is where you use setRole
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify({ user_id, firstname, lastname, role, image, unique_key,  email, contact, adress, zip_code,
-            
-           })
-        );
+        login({
+          user_id, firstname, lastname, role, image, unique_key, email, contact, adress, zip_code
+        });
+        
         toast.success("Login successful!");
 
         // Navigate based on role

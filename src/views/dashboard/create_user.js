@@ -17,6 +17,11 @@ import { toast } from 'react-toastify';
 import { getUserIdFromLocalStorage } from '../../data/localStorage';
 import urls from '../../urls/urls';
 
+
+const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isPhoneValid = (phone) => /^[0-9]{4}-[0-9]{7}$/.test(phone);
+const isZipCodeValid = (zip) => /^[0-9]{4,10}$/.test(zip);
+
 const CreateUser = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,6 +69,8 @@ const CreateUser = () => {
   const [selectedGatewaysList, setSelectedGatewaysList] = useState([]);
   const [assignedGateways, setAssignedGateways] = useState([]);
   const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+  
 
   useEffect(() => {
     if (isEditMode) {
@@ -72,7 +79,7 @@ const CreateUser = () => {
         lastname: receivedUser.lastname || '',
         email: receivedUser.email || '',
         contact: receivedUser.contact || '',
-        password: '',
+        password:receivedUser.password || '',
         role: receivedUser.role || 'user',
         zip_code: receivedUser.zip_code || '',
         adress: receivedUser.address || '',
@@ -85,6 +92,8 @@ const CreateUser = () => {
       }
     }
   }, [location.state]);
+
+  
 
 useEffect(() => {
   const fetchUnassignedGateway = async () => {
@@ -110,9 +119,26 @@ useEffect(() => {
 }, []);
 
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  if (name === 'contact') {
+    // Remove non-numeric characters except dash
+    let cleaned = value.replace(/[^\d]/g, '');
+
+    // Limit to 11 digits
+    if (cleaned.length > 11) cleaned = cleaned.slice(0, 11);
+
+    // Add dash after 4 digits if at least 5 digits are entered
+    if (cleaned.length > 4) {
+      cleaned = cleaned.slice(0, 4) + '-' + cleaned.slice(4);
+    }
+
+    setFormData({ ...formData, [name]: cleaned });
+  } else {
+    setFormData({ ...formData, [name]: value });
+  }
+};
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -133,6 +159,45 @@ useEffect(() => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const newErrors = {};
+  
+    if (!formData.firstname) newErrors.firstname = "First name is required";
+    if (!formData.lastname) newErrors.lastname = "Last name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.contact) newErrors.contact = "Phone number is required";
+    if (!formData.password && !isEditMode) newErrors.password = "Password is required";
+    if (!formData.zip_code) newErrors.zip_code = "Zip code is required";
+    if (!formData.adress) newErrors.adress = "Address is required";
+    if (formData.contact && !isPhoneValid(formData.contact)) {
+      newErrors.contact = "Phone number must be exactly 11 digits";
+    }
+
+    if (!selectedImage && !formData.image) {
+      newErrors.image = "Image is required";
+    }
+
+    if (!isEmailValid(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+  
+    if (!isPhoneValid(formData.contact)) {
+      newErrors.contact = "Invalid phone number";
+    }
+  
+    if (!isZipCodeValid(formData.zip_code)) {
+      newErrors.zip_code = "Invalid zip code";
+    }
+
+  
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setLoading(false);
+      return;
+    }
+  
+    setErrors({});
+    
   
     try {
       let imageUrl = formData.image;
@@ -215,14 +280,14 @@ useEffect(() => {
             alert('Failed to assign gateways. Please try again.')
           }
         }
-        toast.success(isEditMode ? 'User updated successfully' : 'User created successfully');
+        alert(isEditMode ? 'User updated successfully' : 'User created successfully');
         navigate('/dashboard/manage_users');
       } else {
-        toast.error(responseData?.message || 'An error occurred');
+        alert(responseData?.message || 'An error occurred');
       }
     } catch (error) {
       console.error('Error creating/updating user:', error);
-      toast.error('An error occurred while creating/updating the user');
+      alert('An error occurred while creating/updating the user');
     } finally {
       setLoading(false);
     }
@@ -242,15 +307,81 @@ useEffect(() => {
 
       <Box sx={{ display: 'flex', gap: 3 }}>
         <Box sx={{ flex: 1 }}>
-          <TextField name="firstname" value={formData.firstname} onChange={handleChange} fullWidth placeholder="First Name" sx={{ mb: 2 }} />
-          <TextField name="lastname" value={formData.lastname} onChange={handleChange} fullWidth placeholder="Last Name" sx={{ mb: 2 }} />
-          <TextField name="email" value={formData.email} onChange={handleChange} fullWidth placeholder="Email" sx={{ mb: 2 }} />
-          <TextField name="contact" value={formData.contact} onChange={handleChange} fullWidth placeholder="Phone Number" sx={{ mb: 2 }} />
-          <TextField name="adress" value={formData.adress} onChange={handleChange} fullWidth placeholder="Address" sx={{ mb: 2 }} />
-          <TextField name="zip_code" value={formData.zip_code} onChange={handleChange} fullWidth placeholder="Zip Code" sx={{ mb: 2 }} />
-          {!isEditMode && (
-            <TextField name="password" value={formData.password} onChange={handleChange} fullWidth placeholder="Password" type="password" sx={{ mb: 2 }} />
-          )}
+            <TextField
+      name="firstname"
+      value={formData.firstname}
+      onChange={handleChange}
+      fullWidth
+      placeholder="First Name"
+      sx={{ mb: 2 }}
+      error={!!errors.firstname}
+      helperText={errors.firstname}
+    />
+      
+              <TextField name="lastname" value={formData.lastname} onChange={handleChange} fullWidth placeholder="Last Name" sx={{ mb: 2 }}   error={!!errors.lastname}
+      helperText={errors.lastname}/>
+              <TextField
+      name="email"
+      value={formData.email}
+      onChange={handleChange}
+      fullWidth
+      placeholder="Email"
+      sx={{ mb: 2 }}
+      error={!!errors.email}
+      helperText={errors.email}
+    />
+    
+    
+    <TextField
+      name="contact"
+      value={formData.contact}
+      onChange={handleChange}
+      fullWidth
+      placeholder="Phone Number"
+      sx={{ mb: 2 }}
+      error={!!errors.contact}
+      helperText={errors.contact}
+    />
+    
+    <TextField
+      name="adress"
+      value={formData.adress}
+      onChange={handleChange}
+      fullWidth
+      placeholder="Address"
+      sx={{ mb: 2 }}
+      error={!!errors.adress}
+      helperText={errors.adress}
+    />
+    
+    
+              <TextField
+      name="zip_code"
+      value={formData.zip_code}
+      onChange={handleChange}
+      fullWidth
+      placeholder="Zip Code"
+      sx={{ mb: 2 }}
+      error={!!errors.zip_code}
+      helperText={errors.zip_code}
+    />
+    
+    
+    
+    {!isEditMode && (
+      <TextField
+        name="password"
+        value={formData.password}
+        onChange={handleChange}
+        fullWidth
+        placeholder="Password"
+        type="password"
+        sx={{ mb: 2 }}
+        error={!!errors.password}
+        helperText={errors.password}
+      />
+    )}
+          
 
           <Button variant="contained" onClick={handleSubmit} fullWidth disabled={loading}>
             {loading ? 'Saving...' : isEditMode ? 'Update User' : 'Create User'}
@@ -258,30 +389,36 @@ useEffect(() => {
         </Box>
 
         <Box sx={{ flex: 1 }}>
-          {selectedImage || formData.image ? (
-            <img src={selectedImage || formData.image} alt="Uploaded" style={{ width: '100%', borderRadius: 8 }} />
-          ) : (
-            <Box
-              sx={{
-                width: '100%',
-                height: 200,
-                backgroundColor: '#f0f0f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 2,
-                border: '2px dashed #ccc',
-              }}
-            >
-              <Typography>No Image Selected</Typography>
-            </Box>
-          )}
-          <Button variant="contained" component="label" fullWidth sx={{ mt: 2 }}>
-            Upload Image
-            <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
-          </Button>
+  {selectedImage || formData.image ? (
+    <img src={selectedImage || formData.image} alt="Uploaded" style={{ width: '100%', borderRadius: 8 }} />
+  ) : (
+    <Box
+      sx={{
+        width: '100%',
+        height: 200,
+        backgroundColor: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 2,
+        border: '2px dashed #ccc',
+      }}
+    >
+      <Typography>No Image Selected</Typography>
+    </Box>
+  )}
 
-          {role === 'admin' &&  <Select
+  {errors.image && (
+    <Typography sx={{ color: 'red', mt: 1 }} variant="body2">
+      {errors.image}
+    </Typography>
+  )}
+
+  <Button variant="contained" component="label" fullWidth sx={{ mt: 2 }}>
+    Upload Image
+    <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
+  </Button>
+   {role === 'admin' &&  <Select
             value={selectedGateway}
             onChange={(e) => {
               setSelectedGateway(e.target.value);
@@ -298,7 +435,10 @@ useEffect(() => {
               </MenuItem>
             ))}
           </Select>}
-        </Box>
+       
+      
+</Box>
+
       </Box>
 
     {role === 'admin' &&  <Box sx={{ display: 'flex', gap: 3, mt: 4 }}>

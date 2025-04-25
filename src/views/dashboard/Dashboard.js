@@ -304,7 +304,11 @@ useEffect(() => {
 
 
 
-  const fetchProjects = async () => {
+
+
+  useEffect(() => {
+
+        const fetchProjects = async () => {
     try {
       const response = await axios.get(urls.getUserProjects()); // Get URL from the helper
       console.log("USER projects:", response.data);
@@ -317,7 +321,6 @@ useEffect(() => {
     }
   };
 
-  useEffect(() => {
     fetchProjects(); // Call initially
   
     const intervalId = setInterval(() => {
@@ -349,7 +352,7 @@ useEffect(() => {
     }
 
     fetchTotalUserProjectsCount()
-    const intervalId = setInterval(fetchTotalUserProjectsCount, 500)
+    const intervalId = setInterval(fetchTotalUserProjectsCount, 1000)
     return () => clearInterval(intervalId)
   }, [])
 
@@ -386,7 +389,7 @@ useEffect(() => {
     };
   
     getToalProject();
-    const intervalId = setInterval(getToalProject, 5000);
+    const intervalId = setInterval(getToalProject, 2000);
     return () => clearInterval(intervalId);
   }, []);
   

@@ -80,6 +80,8 @@ const ManageAdmin = () => {
       }
     };
     fetchAdmins();
+    const intervalId = setInterval(fetchAdmins, 5000)
+    return () => clearInterval(intervalId)
   }, []);
 
 
@@ -157,7 +159,7 @@ const ManageAdmin = () => {
       </Box>
 
 {/* Admins Table */}
-<TableContainer component={Paper} sx={{ marginTop: 4 }}>
+<TableContainer component={Paper} sx={{ marginTop: 2, marginBottom:2 }}>
   <Table>
     <TableHead>
       <TableRow>

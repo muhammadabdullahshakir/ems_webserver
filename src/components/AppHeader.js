@@ -35,6 +35,7 @@ import { ColorModeContext } from '../views/theme/ThemeContext'
 import { useNavigate } from 'react-router-dom'
 import urls from '../urls/urls'
 
+
 const AppHeader = () => {
   const theme = useTheme()
   const headerRef = useRef()
@@ -45,6 +46,7 @@ const AppHeader = () => {
   const isDarkMode = theme.palette.mode === 'dark'
   const [openLogoutDialog, setOpenLogoutDialog] = React.useState(false)
   const navigate = useNavigate()
+
 
   const user = JSON.parse(localStorage.getItem('user'))
   // console.log ("data......",user.firstname)
@@ -61,6 +63,8 @@ const AppHeader = () => {
     localStorage.removeItem('selectedGateways')
     localStorage.removeItem('user')
     localStorage.removeItem('selectedProjectId')
+    localStorage.removeItem('selectedGatewayId')
+
 
     try {
       const token = localStorage.getItem('authToken'); // ✅ Ensure token is included

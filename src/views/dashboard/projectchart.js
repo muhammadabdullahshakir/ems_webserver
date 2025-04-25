@@ -8,7 +8,6 @@ import dayjs from "dayjs";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";  // Ensure this import is correct!
 import urls from "../../urls/urls";
-
 function ProjectChart() {
   const { gateway_name, value_name } = useParams();
   const [chartData, setChartData] = useState([]);
@@ -16,7 +15,7 @@ function ProjectChart() {
   const [endDate, setEndDate] = useState(dayjs());
   const [selectedDay, setSelectedDay] = useState(null);
   const [hourlyData, setHourlyData] = useState([]);
-
+  const [unit, setUnit] = useState("kW");  // Default fallback
   useEffect(() => {
     const fetchChartData = async () => {
       try {
@@ -25,10 +24,7 @@ function ProjectChart() {
         const response = await fetch(
           `${urls.fetch_highchart_data}?gateway=${gateway_name}&value_name=${value_name}&from_date=${from_date}&to_date=${to_date}`
         );
-        
         const json = await response.json();
-
-  
         // Step 1: Create a date map for range with 0
         const dateMap = {};
         let currentDate = dayjs(startDate);
@@ -36,10 +32,13 @@ function ProjectChart() {
           dateMap[currentDate.format("YYYY-MM-DD")] = 0;
           currentDate = currentDate.add(1, "day");
         }
-  
         // Step 2: Sum all data points per date
+        let unit = null;
         json.ports.forEach(port => {
           port.data.forEach(analyzer => {
+            if (!unit && analyzer.unit) {
+              unit = analyzer.unit;
+            }
             analyzer.data.forEach(([date, value]) => {
               if (dateMap[date] !== undefined) {
                 dateMap[date] += value;
@@ -47,29 +46,25 @@ function ProjectChart() {
             });
           });
         });
-  
         const formattedData = Object.entries(dateMap).map(([date, value]) => ({
           name: date,      // This makes it available as `this.name` on click
           y: value,        // This is the value (y-axis)
+          z: unit
         }));
-        
-  
+        console.log("Unit:", unit);
         setChartData([
           {
             name: "Consumption",
             data: formattedData,
-
           },
         ]);
+        if (unit) setUnit(unit);
       } catch (error) {
         console.error("Error fetching chart data:", error);
       }
     };
-  
     fetchChartData();
   }, [gateway_name, value_name, startDate, endDate]);
-  
-
   const generateHourlyData = async (date) => {
     const formattedDate = dayjs(date).format("YYYY-MM-DD");
     try {
@@ -77,12 +72,10 @@ function ProjectChart() {
         `${urls.fetch_single_highchart_data}?gateway=${gateway_name}&value_name=${value_name}&from_date=${formattedDate}`
       );
       const json = await response.json();
-  
       const hourlyMap = {};
       for (let hour = 0; hour < 24; hour++) {
         hourlyMap[`${hour}:00`] = 0;
       }
-  
       json.ports.forEach((port) => {
         port.data.forEach((analyzer) => {
           analyzer.data.forEach(([hour, value]) => {
@@ -90,9 +83,7 @@ function ProjectChart() {
           });
         });
       });
-  
       const hourlyArray = Object.entries(hourlyMap);
-  
       setHourlyData([
         {
           name: "Hourly Consumption",
@@ -103,9 +94,6 @@ function ProjectChart() {
       console.error("Error fetching hourly data:", error);
     }
   };
-  
-
-
   const HighChart = ({ title, data = [], yAxisLabel, type = "column", xAxisType = "category" }) => {
     const options = {
       chart: { type },
@@ -126,19 +114,16 @@ function ProjectChart() {
             events: {
               click: function () {
                 const clickedDate = dayjs(this.name, "YYYY-MM-DD");
-          
                 if (!clickedDate.isValid()) {
                   console.error("Invalid clickedDate:", this.name);
                   return;
                 }
-          
                 setSelectedDay(clickedDate);
                 generateHourlyData(clickedDate);
                 console.log("Clicked date:", clickedDate.format("YYYY-MM-DD"));
               },
             },
           },
-          
         },
         column: {
           borderWidth: 0,
@@ -147,18 +132,14 @@ function ProjectChart() {
       },
       credits: { enabled: false },
     };
-  
     return <HighchartsReact highcharts={Highcharts} options={options} />;
   };
-  
-
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <div>
         <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
           Gateway: {gateway_name} <br /> Value: {value_name}
         </Typography>
-
         <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
           <DatePicker
             label="Start Date"
@@ -171,23 +152,18 @@ function ProjectChart() {
             onChange={(newDate) => setEndDate(newDate)}
           />
         </div>
-
-        <HighChart title="Daily Consumption" data={chartData} yAxisLabel="Kw" />
-
+        <HighChart title="Daily Consumption" data={chartData} yAxisLabel={unit} />
         {selectedDay && (
   <HighChart
-    title={`Hourly Consumption for ${selectedDay.format("YYYY-MM-DD")}`}  // 🖨️ This shows the selected date
+    title={`Hourly Consumption for ${selectedDay.format("YYYY-MM-DD")}`}  // :printer: This shows the selected date
     data={hourlyData}
-    yAxisLabel="Kw"
+    yAxisLabel={unit}
     xAxisLabel="Time"
     type="line"
   />
 )}
-
-
       </div>
     </LocalizationProvider>
   );
 }
-
 export default ProjectChart;

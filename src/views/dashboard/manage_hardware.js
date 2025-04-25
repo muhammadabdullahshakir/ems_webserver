@@ -30,58 +30,99 @@ import {  Delete } from '@mui/icons-material'
 
 // Modal Component with Bounce Effect
 const Modal = ({ isOpen, onClose, onSave }) => {
-  const [input1, setInput1] = useState('')
-  const [input2, setInput2] = useState('')
-  const theme= useTheme()
-  if (!isOpen) return null
+  const [input1, setInput1] = useState('');
+  const [input2, setInput2] = useState('');
+  const [errors, setErrors] = useState({});
+  const theme = useTheme();
+
+  if (!isOpen) return null;
 
   const handleSave = () => {
-    onSave(input1, input2)
-    onClose()
-  }
+    const newErrors = {};
+    const macRegex = /^([A-Z0-9]{2}:){5}[A-Z0-9]{2}$/;
+
+    if (!input1.trim()) {
+      newErrors.input1 = 'Gateway name is required';
+    }
+
+    if (!input2.trim()) {
+      newErrors.input2 = 'MAC Address is required';
+    } else if (!macRegex.test(input2)) {
+      newErrors.input2 = 'MAC Address must be in format XX:XX:XX:XX:XX:XX';
+    }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    onSave(input1, input2);
+    onClose();
+  };
+
+  const handleMacInputChange = (e) => {
+    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    let formatted = '';
+    for (let i = 0; i < value.length && i < 12; i += 2) {
+      if (i > 0) formatted += ':';
+      formatted += value.substr(i, 2);
+    }
+    setInput2(formatted);
+  };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      {/* Dialog Box with Bounce Animation */}
-      <div className="modal-container" style={{background: theme.palette.background.paper,}}>
-        <h2 className="modal-heading" style={{ color: theme.palette.text.TextColor}}>Create Hardware</h2>
-        <div className="modal-content">
-          {/* Text Field 1 */}
-          <div className="input-group">
-            <label className="input-label" style={{ color: theme.palette.text.TextColor}}>Gateway Name</label>
-            <input
-              type="text"
-              value={input1}
-              onChange={(e) => setInput1(e.target.value)}
-              className="input-field"
-              placeholder="Enter Gateway Name"
-            />
-          </div>
-          {/* Text Field 2 */}
-          <div className="input-group">
-            <label className="input-label" style={{ color: theme.palette.text.TextColor}}>MAC Address</label>
-            <input
-              type="text"
-              value={input2}
-              onChange={(e) => setInput2(e.target.value)}
-              className="input-field"
-              placeholder="Enter MAC Address"
-            />
-          </div>
+      <div
+        className="modal-container"
+        style={{
+          background: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          padding: '24px',
+          borderRadius: '12px',
+          width: '400px',
+          boxShadow: theme.shadows[5]
+        }}
+      >
+        <h2 style={{ color: theme.palette.text.primary }}>Create Hardware</h2>
+
+        <div style={{ marginBottom: '16px' }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Gateway Name"
+            variant="outlined"
+            value={input1}
+            onChange={(e) => setInput1(e.target.value)}
+            error={!!errors.input1}
+            helperText={errors.input1}
+          />
         </div>
-        {/* Buttons */}
-        <div className="modal-actions">
-          <button onClick={onClose} className="modal-button cancel-button">
+
+        <div style={{ marginBottom: '16px' }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="MAC Address"
+            variant="outlined"
+            value={input2}
+            onChange={handleMacInputChange}
+            placeholder="XX:XX:XX:XX:XX:XX"
+            error={!!errors.input2}
+            helperText={errors.input2}
+          />
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <Button variant="outlined" onClick={onClose}>
             Cancel
-          </button>
-          <button onClick={handleSave} className="modal-button save-button">
+          </Button>
+          <Button variant="contained" onClick={handleSave}>
             Save
-          </button>
+          </Button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
 
 const ManageHardware = () => {
   const [gateways, setGateways] = useState([])
@@ -92,39 +133,7 @@ const ManageHardware = () => {
   const [selectedGatewayId, setSelectedGatewayId] = useState(null);
 
 
-  const fetchAllHardware = async () => {
-    try {
-      const response = await axios.get(urls.totalGateways);
-      const userId = getUserIdFromLocalStorage();
-  
-      const filteredData = response.data.Gateways.filter(
-        (item) => String(item.created_by_id) === String(userId) // filter by match
-      );
-  
-      const transformedHardware = filteredData.map((item) => {
-        let deployStatus = 'Warehouse';
-  
-        if (item.deploy_status === 'user_aloted') {
-          deployStatus = 'Assigned to User';
-        } else if (item.deploy_status === 'deployed') {
-          deployStatus = 'Deployed to User';
-        }
-  
-        return {
-          id: item.G_id,
-          gateway_name: item.gateway_name,
-          mac_address: item.mac_address,
-          status: item.status,
-          deploy_status: deployStatus,
-        };
-      });
-  
-      console.log('Filtered hardware:', transformedHardware);
-      setGateways(transformedHardware);
-    } catch (error) {
-      console.error('Error fetching gateway:', error);
-    }
-  };
+
 
   const handleDeleteClick = (gatewayId) => {
     setSelectedGatewayId(gatewayId);
@@ -145,6 +154,44 @@ const ManageHardware = () => {
   
   
   useEffect(() => {
+
+    const fetchAllHardware = async () => {
+      try {
+        const response = await axios.get(urls.totalGateways);
+        console.log('response:', response);
+        const userId = getUserIdFromLocalStorage();
+    
+        const filteredData = response.data.Gateways.filter(
+          (item) => String(item.created_by_id) === String(userId) // filter by match
+        );
+    
+        const transformedHardware = filteredData.map((item) => {
+          let deployStatus = 'Warehouse';
+    
+          if (item.deploy_status === 'user_aloted') {
+            deployStatus = 'Assigned to User';
+          } else if (item.deploy_status === 'deployed') {
+            deployStatus = 'Deployed to User';
+          }
+    
+          return {
+            id: item.G_id,
+            gateway_name: item.gateway_name,
+            mac_address: item.mac_address,
+            status: item.status,
+            deploy_status: deployStatus,
+            user_id: item.user_id,  // Add user_id
+            user_image: item.user_image 
+            
+          };
+        });
+    
+        console.log('Filtered hardware:', transformedHardware);
+        setGateways(transformedHardware);
+      } catch (error) {
+        console.error('Error fetching gateway:', error);
+      }
+    };
     fetchAllHardware(); // Call once on mount
   
     const intervalId = setInterval(() => {
@@ -261,7 +308,6 @@ const ManageHardware = () => {
                     <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Gateway Name</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>MAC Address</TableCell>
-                    <TableCell style={{ fontWeight: 'bold' }}>Status</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Deployment Status</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Action</TableCell>
 
@@ -277,56 +323,63 @@ const ManageHardware = () => {
                         <TableCell>{gateway.gateway_name}</TableCell>
                         <TableCell>{gateway.mac_address}</TableCell>
 
-                        {/* Status Column with Indicator */}
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'right', gap: 1 }}>
-                            {/* Indicator */}
-                            <Box
-                              sx={{
-                                width: 10,
-                                height: 10,
-                                borderRadius: '50%',
-                                backgroundColor:
-                                  gateway.deploy_status === 'Deployed to User'
-                                    ? 'green'
-                                    : gateway.deploy_status === 'Assigned to User'
-                                      ? 'blue'
-                                      : 'red',
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
+
 
                         <TableCell>
-  <Button
-    disableRipple
-    disableElevation
-    variant="contained"
-    size="small"
-    sx={{
-      pointerEvents: 'none', // Disables all interaction
-      cursor: 'default',     // Shows default arrow instead of pointer
-      backgroundColor:
-        gateway.deploy_status === 'Deployed to User'
-          ? 'rgb(48, 207, 48)'
-          : gateway.deploy_status === 'Assigned to User'
-            ? '#2337cb'
-            : '#ff2c2c',
-      color: 'white',
-      fontSize: '12px',
-      '&:hover': {
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <Button
+      disableRipple
+      disableElevation
+      variant="contained"
+      size="small"
+      sx={{
+        pointerEvents: 'none', // Disables all interaction
+        cursor: 'default',     // Shows default arrow instead of pointer
         backgroundColor:
           gateway.deploy_status === 'Deployed to User'
             ? 'rgb(48, 207, 48)'
             : gateway.deploy_status === 'Assigned to User'
               ? '#2337cb'
               : '#ff2c2c',
-      },
-    }}
-  >
-    {gateway.deploy_status}
-  </Button>
+        color: 'white',
+        fontSize: '12px',
+        '&:hover': {
+          backgroundColor:
+            gateway.deploy_status === 'Deployed to User'
+              ? 'rgb(48, 207, 48)'
+              : gateway.deploy_status === 'Assigned to User'
+                ? '#2337cb'
+                : '#ff2c2c',
+        },
+      }}
+    >
+      {gateway.deploy_status}
+    </Button>
+
+    {/* Avatar and User ID */}
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {/* Avatar */}
+      {gateway.user_image && (
+        <img
+          src={gateway.user_image}  // Assuming the image URL is stored here
+          alt="User Avatar"
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: '50%',
+            objectFit: 'cover',
+          }}
+        />
+      )}
+
+      {/* User ID */}
+      <Typography variant="body2">{gateway.user_id}</Typography>
+    </Box>
+  </Box>
 </TableCell>
+
+
+
 <TableCell>
 <IconButton color="error" onClick={() => handleDeleteClick(gateway.id)}>
   <Delete />

@@ -80,35 +80,40 @@ const ManageGateway = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const theme = useTheme()
 
-  const fetchAllHardware = async () => {
-    try {
-      const response = await axios.get(urls.totalGateways);
-      const transformedHardware = response.data.Gateways.map((item) => {
-        let deployStatus = 'Warehouse';
-  
-        if (item.deploy_status === 'user_aloted') {
-          deployStatus = 'Assigned to User';
-        } else if (item.deploy_status === 'deployed') {
-          deployStatus = 'Deployed to User';
-        }
-  
-        return {
-          id: item.G_id,
-          gateway_name: item.gateway_name,
-          mac_address: item.mac_address,
-          status: item.status,
-          deploy_status: deployStatus,
-        };
-      });
-  
-      console.log("hardwares: ", transformedHardware);
-      setGateways(transformedHardware);
-    } catch (error) {
-      console.error('Error fetching gateway:', error);
-    }
-  };
+
   
   useEffect(() => {
+    const fetchAllHardware = async () => {
+      try {
+        const response = await axios.get(urls.totalGateways);
+        console.log("response: ", response);
+
+        const transformedHardware = response.data.Gateways.map((item) => {
+          let deployStatus = 'Warehouse';
+    
+          if (item.deploy_status === 'user_aloted') {
+            deployStatus = 'Assigned to User';
+          } else if (item.deploy_status === 'deployed') {
+            deployStatus = 'Deployed to User';
+          }
+    
+          return {
+            id: item.G_id,
+            gateway_name: item.gateway_name,
+            mac_address: item.mac_address,
+            status: item.status,
+            deploy_status: deployStatus,
+            created_by_id:item.created_by_id,
+            admin_image: item.admin_image 
+          };
+        });
+    
+        console.log("hardwares: ", transformedHardware);
+        setGateways(transformedHardware);
+      } catch (error) {
+        console.error('Error fetching gateway:', error);
+      }
+    };
     fetchAllHardware(); // Call once on mount
   
     const intervalId = setInterval(() => {
@@ -151,17 +156,7 @@ const ManageGateway = () => {
           <p className="text-gray-600">Managing the Gateways</p>
         </div>
 
-        {/* Right Column (Clickable Icon) */}
-        <div className="flex-1 text-right">
-          <button
-          style={{background: theme.palette.background.create}}
-            onClick={() => setIsModalOpen(true)} // Open modal on click
-            className="flex items-center gap-2 text-blue-600 cursor-pointer"
-          >
-            <Plus size={40} className="hover:scale-110 transition-transform"style={{color:theme.palette.text.TextColor}} />
-            <p style={{color: theme.palette.text.TextColor}}>Create Gateway</p>
-          </button>
-        </div>
+
       </div>
 
       {/* Modal */}
@@ -218,8 +213,8 @@ const filteredGateways = gateways.filter((gateway) => {
                     <TableCell style={{ fontWeight: 'bold' }}>ID</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Gateway Name</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>MAC Address</TableCell>
-                    <TableCell style={{ fontWeight: 'bold' }}>Status</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>Deployment Status</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Created By</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -230,25 +225,7 @@ const filteredGateways = gateways.filter((gateway) => {
                         <TableCell>{gateway.gateway_name}</TableCell>
                         <TableCell>{gateway.mac_address}</TableCell>
 
-                        {/* Status Column with Indicator */}
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'right', gap: 1 }}>
-                            {/* Indicator */}
-                            <Box
-                              sx={{
-                                width: 10,
-                                height: 10,
-                                borderRadius: '50%',
-                                backgroundColor:
-                                  gateway.deploy_status === 'Deployed to User'
-                                    ? 'green'
-                                    : gateway.deploy_status === 'Assigned to User'
-                                      ? 'blue'
-                                      : 'red',
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
+
 
                         <TableCell>
   <Button
@@ -283,6 +260,28 @@ const filteredGateways = gateways.filter((gateway) => {
     {gateway.deploy_status}
   </Button>
 </TableCell>
+<TableCell>
+   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        
+  {gateway.admin_image
+ && (
+    <img
+      src={gateway.admin_image
+      }  // Use user_image instead of admin_image
+      alt="User Avatar"
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: '50%',
+        objectFit: 'cover',
+      }}
+    />
+  )}
+   {gateway.created_by_id} 
+</Box>
+</TableCell>
+
+
 
                       </TableRow>
                     ))

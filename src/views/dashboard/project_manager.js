@@ -16,7 +16,7 @@ import {
   DialogContent,
   useTheme,
   Divider,
-  useMediaQuery 
+  useMediaQuery
 } from '@mui/material'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
@@ -170,10 +170,10 @@ const ProjectManager = () => {
   const [edges, onEdgesChange] = useEdgesState(initialEdges)
   const [newNodes, setNewNodes] = useState(initialNodes)
   const [newEdges, setNewEdges] = useState(initialEdges)
-   const [role, setRole] = useState('');
+  const [role, setRole] = useState('');
 
-   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-   
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
   useEffect(() => {
     // Retrieve user data from localStorage
     const user = JSON.parse(localStorage.getItem('user'));
@@ -203,34 +203,34 @@ const ProjectManager = () => {
     return updatedEdges
   }
 
-const handleGatewayChange = (event) => {
-  const selectedGateway = event.target.value; // Get selected gateway name or ID
-  setSelectedGatewayForDropdown(selectedGateway);
+  const handleGatewayChange = (event) => {
+    const selectedGateway = event.target.value; // Get selected gateway name or ID
+    setSelectedGatewayForDropdown(selectedGateway);
 
-  // Fetch Gateway ID (Assuming you can get the G_id from the selected gateway object)
-  const selectedGatewayData = gateways.find(gw => gw.gateway_name === selectedGateway);
-  const gatewayId = selectedGatewayData ? selectedGatewayData.G_id : null;
+    // Fetch Gateway ID (Assuming you can get the G_id from the selected gateway object)
+    const selectedGatewayData = gateways.find(gw => gw.gateway_name === selectedGateway);
+    const gatewayId = selectedGatewayData ? selectedGatewayData.G_id : null;
 
-  // Save the Gateway ID (G_id) to localStorage under a separate record
-  if (gatewayId) {
-    localStorage.setItem("selectedGatewayId", gatewayId);
-  }
+    // Save the Gateway ID (G_id) to localStorage under a separate record
+    if (gatewayId) {
+      localStorage.setItem("selectedGatewayId", gatewayId);
+    }
 
-  // Store selected gateway for the project (you already have this logic)
-  let storedGateways = JSON.parse(localStorage.getItem("selectedGateways")) || {};
-  storedGateways[project_id] = selectedGateway;
-  localStorage.setItem("selectedGateways", JSON.stringify(storedGateways));
-};
+    // Store selected gateway for the project (you already have this logic)
+    let storedGateways = JSON.parse(localStorage.getItem("selectedGateways")) || {};
+    storedGateways[project_id] = selectedGateway;
+    localStorage.setItem("selectedGateways", JSON.stringify(storedGateways));
+  };
 
-  
-  
+
+
   const [selectedGatewayForDropDown, setSelectedGatewayForDropdown] = useState(() => {
     const storedGateways = JSON.parse(localStorage.getItem("selectedGateways")) || {};
     return storedGateways[project_id] || ""; // Get the correct gateway for the project
   });
-  
-  
-  
+
+
+
   /////// fetchDeployedGatewaysForDropdown //////
   useEffect(() => {
     const fetchDeployedGatewaysForDropdown = async () => {
@@ -238,13 +238,13 @@ const handleGatewayChange = (event) => {
         const response = await axios.get(`${urls.getGatewaysForDropdown}?project_id=${project_id}`);
         const data = response.data.deployed_gateways;
         setDropdownGateways(data);
-  
+
         // Retrieve stored gateways from localStorage
         let storedGateways = JSON.parse(localStorage.getItem("selectedGateways")) || {};
-  
+
         // Get the selected gateway for the current project
         const storedGateway = storedGateways[project_id];
-  
+
         // Ensure the stored gateway exists in the current project
         if (storedGateway && data.some((gw) => gw.gateway_name === storedGateway)) {
           setSelectedGatewayForDropdown(storedGateway);
@@ -255,40 +255,40 @@ const handleGatewayChange = (event) => {
         console.error("Error fetching gateways for dropdown", error);
       }
     };
-  
+
     fetchDeployedGatewaysForDropdown();
     const intervalId = setInterval(fetchDeployedGatewaysForDropdown, 5000);
     return () => clearInterval(intervalId);
   }, [project_id]);
-  
 
- ///// fetchdeployedgateways /////
- useEffect(() => {
-  const fetchDeployedGateways = async () => {
-    try {
-      const response = await fetch(`${urls.fetchDeployedGateways}?project_id=${project_id}`)
-      const data = await response.json()
-      console.log('Fetched Deployed Gateways:', data)
 
-      if (response.ok) {
-        const fetchedGateways = data.deployed_gateways || []
-        console.log('fetched deployed gateways:', fetchedGateways)
-        setGateways(fetchedGateways)
-      } else {
-        setError(data.message || 'Failed to fetch gateways')
+  ///// fetchdeployedgateways /////
+  useEffect(() => {
+    const fetchDeployedGateways = async () => {
+      try {
+        const response = await fetch(`${urls.fetchDeployedGateways}?project_id=${project_id}`)
+        const data = await response.json()
+        console.log('Fetched Deployed Gateways:', data)
+
+        if (response.ok) {
+          const fetchedGateways = data.deployed_gateways || []
+          console.log('fetched deployed gateways:', fetchedGateways)
+          setGateways(fetchedGateways)
+        } else {
+          setError(data.message || 'Failed to fetch gateways')
+        }
+      } catch (err) {
+        setError('Error occurred while fetching data')
+        console.error(err)
       }
-    } catch (err) {
-      setError('Error occurred while fetching data')
-      console.error(err)
     }
-  }
 
-  fetchDeployedGateways()
- 
-  const intervalId = setInterval(fetchDeployedGateways, 5000)
-  return () => clearInterval(intervalId)
-  
-}, [project_id])
+    fetchDeployedGateways()
+
+    const intervalId = setInterval(fetchDeployedGateways, 5000)
+    return () => clearInterval(intervalId)
+
+  }, [project_id])
 
 
   ////// fetchweatherdata //////
@@ -303,20 +303,20 @@ const handleGatewayChange = (event) => {
         })
         return
       }
-  
+
       try {
         const apiUrl = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${latitude},${longitude}?key=CGYB7C92LET4UR7F9YY2TWYLS`
-  
+
         const response = await fetch(apiUrl)
         const data = await response.json()
         console.log('weather', data)
-  
+
         // Convert Fahrenheit to Celsius
         data.currentConditions.temp = ((data.currentConditions.temp - 32) * 5) / 9
         data.days[0].hours.forEach((hour) => {
           hour.temp = ((hour.temp - 32) * 5) / 9
         })
-  
+
         setWeatherData(data)
       } catch (error) {
         console.error('Error fetching weather data:', error)
@@ -327,11 +327,11 @@ const handleGatewayChange = (event) => {
         })
       }
     }
-  
+
     fetchWeatherData()
   }, [latitude, longitude])
-  
-  
+
+
 
   /////// fetchDeployedGatewaysForDropdown //////
   useEffect(() => {
@@ -426,42 +426,42 @@ const handleGatewayChange = (event) => {
 
   const getNextHours = (hours) => {
     if (!hours || !Array.isArray(hours)) return []
-  
+
     const currentHour = new Date().getHours()
-  
+
     return hours
       .filter((hour) => {
         // Make sure hour.datetime exists and is a string
         if (!hour.datetime || typeof hour.datetime !== 'string') return false
-  
+
         const hourValue = parseInt(hour.datetime.split(':')[0])
         return hourValue >= currentHour
       })
       .slice(0, 5)
   }
-  
+
 
   const getWeatherIcon = (temp, conditions) => {
     if (!temp || !conditions) return null; // ✅ Handle missing values
-  
-    if (conditions.toLowerCase().includes("rain")) 
+
+    if (conditions.toLowerCase().includes("rain"))
       return <WiRain color="#0077b6" size={80} />; // Deep Blue for Rain
-    
-    if (conditions.toLowerCase().includes("cloud")) 
+
+    if (conditions.toLowerCase().includes("cloud"))
       return <WiCloudy color="#6c757d" size={80} />; // Neutral Gray for Clouds
-    
-    if (conditions.toLowerCase().includes("wind")) 
+
+    if (conditions.toLowerCase().includes("wind"))
       return <WiWindy color="#00a8cc" size={80} />; // Fresh Sky Blue for Wind
-    
-    if (conditions.toLowerCase().includes("sunrise") || conditions.toLowerCase().includes("sunset")) 
+
+    if (conditions.toLowerCase().includes("sunrise") || conditions.toLowerCase().includes("sunset"))
       return <WiSunset color="#ff914d" size={80} />; // Warm Sunset Orange
-    
-    if (temp >= 30) 
+
+    if (temp >= 30)
       return <WiDaySunny color="#f4a261" size={80} />; // Soft Sun Orange
-    
-    if (temp < 15) 
+
+    if (temp < 15)
       return <WiSnow color="#6dd5ed" size={80} />; // Cool Icy Blue for Cold Weather
-  
+
     return <WiDayCloudy color="#f5c518" size={80} />; // Soft Yellow for Mild Conditions
   };
 
@@ -506,7 +506,7 @@ const handleGatewayChange = (event) => {
   };
   const TreeBox = ({ label, purpose, onClick }) => {
     const { icon, bgColor, mainBoxBg } = getIconAndBgColor(purpose);
-  
+
     return (
       <Box
         sx={{
@@ -541,7 +541,7 @@ const handleGatewayChange = (event) => {
         >
           {React.cloneElement(icon, { style: { color: 'white' } })} {/* ✅ White Icon */}
         </Box>
-  
+
         {/* ✅ Label - Only Analyzer is Right-Aligned */}
         <Typography
           variant="subtitle1"
@@ -557,202 +557,212 @@ const handleGatewayChange = (event) => {
       </Box>
     );
   };
-  
+
 
   return (
-    
-    <Box sx={{ p: 2,  }}>
+
+    <Box sx={{ p: 2, }}>
       {/* Responsive Grid Layout */}
       <Grid container spacing={0}>
         <Grid container spacing={1} alignItems="stretch" mt={1}>
+
+
+
+
           {/* ✅ Left Box (Placeholder Content) */}
           <Grid item xs={12} md={6}>
-          <motion.div
+            <motion.div
               initial={{ opacity: 0, y: 150 }}
-             animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
-              >
-<Box
-  sx={{
-    p: { xs: '15px', sm: '20px', md: '25px' },
-    borderRadius: '10px',
-    maxHeight: { xs: 'auto', md: '690px' },
-    minHeight: { xs: '300px', md: '490px' },
-    display: "flex",
-    flexDirection: "column",
-    background: `linear-gradient(to right, rgba(201, 202, 203, 0.91), rgba(209, 207, 207, 0.3)), 
+            >
+              <Box
+                sx={{
+                  p: { xs: '15px', sm: '20px', md: '25px' },
+                  borderRadius: '10px',
+                  maxHeight: { xs: 'auto', md: '690px' },
+                  minHeight: { xs: '300px', md: '490px' },
+                  display: "flex",
+                  flexDirection: "column",
+                  background: `linear-gradient(to right, rgba(201, 202, 203, 0.91), rgba(209, 207, 207, 0.3)), 
       url('https://i0.wp.com/calmatters.org/wp-content/uploads/2021/11/clean-energy-power-grid.jpg?fit=1836%2C1059&ssl=1') center/cover no-repeat`,
-  }}
->
-  <Typography
-    variant="h6"
-    sx={{
-      top: 30,
-      left: 20,
-      fontSize: { xs: '1rem', sm: '1.2rem' },
-    }}
-  >
-    👋 Welcome Back
-  </Typography>
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    top: 30,
+                    left: 20,
+                    fontSize: { xs: '1rem', sm: '1.2rem' },
+                  }}
+                >
+                  👋 Welcome Back
+                </Typography>
 
-  <Typography
-    variant="h2"
-    sx={{
-      fontSize: { xs: '2rem', sm: '3rem', md: '3.5rem' },
-      textAlign: "center",
-      mt: { xs: 4, md: 10 }
-    }}
-  >
-    {projectName}
-  </Typography>
-</Box>
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontSize: { xs: '2rem', sm: '3rem', md: '3.5rem' },
+                    textAlign: "center",
+                    mt: { xs: 4, md: 10 }
+                  }}
+                >
+                  {projectName}
+                </Typography>
+              </Box>
 
             </motion.div>
           </Grid>
 
           {/* ✅ Weather Information (Right Side) */}
           <Grid item xs={12} md={6} onClick={handleOpen} style={{ cursor: "pointer" }}>
-          <motion.div
-            whileHover={{ scale: 1.03, boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.2)" }}
-            transition={{ duration: 0.3 }}
-          >
-            <Box
-              sx={{
-                background: theme.palette.background.paper,
-                p: "20px",
-                borderRadius: "12px",
-                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
-                border: "1px solid #ddd",
-                textAlign: "center",
-                maxHeight: "690px", // Increased height
-                minHeight: "490px", // Increased height
-              }}
+            <motion.div
+              whileHover={{ scale: 1.03, boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.2)" }}
+              transition={{ duration: 0.3 }}
             >
-              {/* ✅ Current Condition */}
-              <Typography variant="h6" fontWeight="bold">
-                {weatherData?.currentConditions?.conditions}
-              </Typography>
+              <Box
+                sx={{
+                  background: theme.palette.background.paper,
+                  p: "20px",
+                  borderRadius: "12px",
+                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+                  border: "1px solid #ddd",
+                  textAlign: "center",
+                  maxHeight: "690px", // Increased height
+                  minHeight: "490px", // Increased height
+                }}
+              >
+                {/* ✅ Current Condition */}
+                <Typography variant="h6" fontWeight="bold">
+                  {weatherData?.currentConditions?.conditions}
+                </Typography>
 
-              {weatherData ? (
-                <Box>
-                  {/* ✅ Temperature with Animation */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                  >
+                {weatherData ? (
+                  <Box>
+                    {/* ✅ Temperature with Animation */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Box
+                        sx={{
+                          fontSize: "32px",
+                          fontWeight: "bold",
+                          display: "inline-block",
+                          color: theme.palette.text.primary,
+                        }}
+                      >
+                        {weatherData.currentConditions.temp.toFixed(1)}°C
+                      </Box>
+                    </motion.div>
+
+                    {/* ✅ Weather Icon with Animation */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <Box sx={{ fontSize: "0px" }}>
+                        {getWeatherIcon(
+                          weatherData.currentConditions.temp,
+                          weatherData.currentConditions.conditions
+                        )}
+                      </Box>
+                    </motion.div>
+
+            {/* Humidity & Wind */}
+            <Grid container justifyContent="space-between" alignItems="center" sx={{ mt: 2, px: 2 }}>
+              <Grid item xs={6}>
+                <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <WiHumidity size={40} color="blue" />
+                    <Typography variant="body2">
+                      <strong>Humidity:</strong> {weatherData.currentConditions.humidity}%
+                    </Typography>
+                  </Box>
+                </motion.div>
+              </Grid>
+              <Grid item xs={6}>
+                <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <WiStrongWind size={40} color="gray" />
+                    <Typography variant="body2">
+                      <strong>Wind:</strong> {weatherData.currentConditions.windspeed} km/h
+                    </Typography>
+                  </Box>
+                </motion.div>
+              </Grid>
+            </Grid>
+
+                    {/* ✅ Next 5 Hours Forecast */}
+                    <Typography variant="h6" sx={{ mt: 3, fontWeight: "bold" }}>
+                      Next 5 Hours Forecast
+                    </Typography>
                     <Box
                       sx={{
-                        fontSize: "32px",
-                        fontWeight: "bold",
-                        display: "inline-block",
-                        color: theme.palette.text.primary,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        overflowX: "auto",
+                        whiteSpace: "nowrap",
+                        gap: "15px",
+                        padding: "10px 0",
                       }}
                     >
-                      {weatherData.currentConditions.temp.toFixed(1)}°C
-                    </Box>
-                  </motion.div>
-
-                  {/* ✅ Weather Icon with Animation */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <Box sx={{ fontSize: "0px" }}>
-                      {getWeatherIcon(
-                        weatherData.currentConditions.temp,
-                        weatherData.currentConditions.conditions
-                      )}
-                    </Box>
-                  </motion.div>
-
-                  {/* ✅ Humidity & Wind Speed Row */}
-                  <Grid container justifyContent="space-between" alignItems="center" sx={{ mt: 2, px: 3 }}>
-                    {/* ✅ Humidity with Animation */}
-                    <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
-                      <Grid item sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <WiHumidity size={50} color="blue" />
-                        <Typography sx={{ fontSize: "14px" }}>
-                          <strong>Humidity:</strong> {weatherData.currentConditions.humidity}%
-                        </Typography>
-                      </Grid>
-                    </motion.div>
-
-                    {/* ✅ Wind Speed with Animation */}
-                    <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
-                      <Grid item sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <WiStrongWind size={50} color="gray" />
-                        <Typography sx={{ fontSize: "14px" }}>
-                          <strong>Wind:</strong> {weatherData.currentConditions.windspeed} km/h
-                        </Typography>
-                      </Grid>
-                    </motion.div>
-                  </Grid>
-
-                  {/* ✅ Next 5 Hours Forecast */}
-                  <Typography variant="h6" sx={{ mt: 3, fontWeight: "bold" }}>
-                    Next 5 Hours Forecast
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      overflowX: "auto",
-                      whiteSpace: "nowrap",
-                      gap: "15px",
-                      padding: "10px 0",
-                    }}
-                  >
-                    {getNextHours(weatherData?.days?.[0]?.hours).map((hour, index, array) => {
-                      return (
-                        <motion.div
-                          key={index}
-                          whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.3 }}
-                          style={{ textAlign: "center", padding: "0 10px", position: "relative" }}
-                        >
-                          {/* ✅ Weather Icon Animation */}
+                      {getNextHours(weatherData?.days?.[0]?.hours).map((hour, index, array) => {
+                        return (
                           <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
+                            key={index}
+                            whileHover={{ scale: 1.1 }}
+                            transition={{ duration: 0.3 }}
+                            style={{ textAlign: "center", padding: "0 10px", position: "relative" }}
                           >
-                            {getWeatherIcon(hour.temp, hour.conditions)}
+                            {/* ✅ Weather Icon Animation */}
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.5 }}
+                            >
+                              {getWeatherIcon(hour.temp, hour.conditions)}
+                            </motion.div>
+
+                            {/* ✅ Time and Temperature */}
+                            <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>
+                              {hour.datetime}
+                            </Typography>
+                            <Typography sx={{ fontSize: "14px" }}>{hour.temp.toFixed(1)}°C</Typography>
+
+                            {/* Vertical Divider (Except Last Item) */}
+                            {index !== array.length - 1 && (
+                              <Box
+                                sx={{
+                                  width: "2px",
+                                  height: "50px",
+                                  backgroundColor: "#ddd",
+                                  position: "absolute",
+                                  right: "-10px",
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                }}
+                              />
+                            )}
                           </motion.div>
-
-                          {/* ✅ Time and Temperature */}
-                          <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>
-                            {hour.datetime}
-                          </Typography>
-                          <Typography sx={{ fontSize: "14px" }}>{hour.temp.toFixed(1)}°C</Typography>
-
-                          {/* Vertical Divider (Except Last Item) */}
-                          {index !== array.length - 1 && (
-                            <Box
-                              sx={{
-                                width: "2px",
-                                height: "50px",
-                                backgroundColor: "#ddd",
-                                position: "absolute",
-                                right: "-10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                              }}
-                            />
-                          )}
-                        </motion.div>
-                      );
-                    })}
+                        );
+                      })}
+                    </Box>
                   </Box>
-                </Box>
-              ) : (
-                <Typography>Loading weather data...</Typography>
-              )}
-            </Box>
-          </motion.div>
-        </Grid>
+                ) : (
+                  <Typography>Loading weather data...</Typography>
+                )}
+              </Box>
+            </motion.div>
+          </Grid>
+
+
+
+
+
 
           {/* Wlcm to user */}
           <Grid item xs={12}>
@@ -773,7 +783,7 @@ const handleGatewayChange = (event) => {
               {/* Left Side: Welcome Message */}
               <Box sx={{ textAlign: 'left', flex: 1, minWidth: '250px' }}>
                 <Typography variant="h5" fontWeight="bold">
-                  Gateway Dashboard 
+                  Gateway Dashboard
                 </Typography>
               </Box>
 
@@ -802,9 +812,9 @@ const handleGatewayChange = (event) => {
                   </Select>
                 </FormControl>
               </Box>
-               <Box>
-                            {role === 'user' && <DeployGateway />}
-                            </Box>
+              <Box>
+                {role === 'user' && <DeployGateway />}
+              </Box>
             </Box>
           </Grid>
 
@@ -916,7 +926,7 @@ const handleGatewayChange = (event) => {
                       label={
                         <TreeBox
                           purpose="Gateway"
-                          
+
                           label={
                             <>
                               {' '}
@@ -1032,36 +1042,35 @@ const handleGatewayChange = (event) => {
           )}
         </Grid>
 
- 
+
         <Grid container spacing={2} mt={2}>
           {/* ✅ First Box - Only Solar Cost Bar Charts */}
-          <Grid item xs={12} md={6} height={450}> 
-            {selectedGatewayForDropDown && (
-              <Box
-                sx={{
-                  background: theme.palette.background.paper,
-                  p: '20px',
-                  borderRadius: '10px',
-                  boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                  border: '1px solid #ddd',
-                  textAlign: 'center',
-                  height: '100%',
-                }}
-              >
-                {/* Grid For costing bar charts where months in bottom and cost at left */}
-                <Grid 
-      container
-      justifyContent="center"  // Horizontally centers the content
-      alignItems="center"       // Vertically centers the content
-       // Ensures the Grid takes the full height
+          <Grid item xs={12} md={6} height={450}>
+  {selectedGatewayForDropDown && (
+    <Box
+      sx={{
+        background: theme.palette.background.paper,
+        p: { xs: 2, sm: 3 },
+        borderRadius: '10px',
+        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #ddd',
+        textAlign: 'center',
+        height: '100%',
+      }}
     >
-      <Grid item>
-        <CostBarGraph />
+      <Grid
+        container
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Grid item xs={12}>
+          <CostBarGraph />
+        </Grid>
       </Grid>
-    </Grid>
-              </Box>
-            )}
-          </Grid>
+    </Box>
+  )}
+</Grid>
+
 
           {/* ✅ Second Box - ReactFlow (UNCHANGED) */}
           <Grid item xs={12} md={6} height={450}>
@@ -1085,7 +1094,7 @@ const handleGatewayChange = (event) => {
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}
                   fitView={true}
-                  
+
                   zoomOnScroll={true}
                   panOnScroll={false}
                   panOnDrag={false}
@@ -1099,119 +1108,119 @@ const handleGatewayChange = (event) => {
         <Grid container spacing={2} mt={1}>
           {/* First grpagh Solar USage */}
           <Grid item xs={12} md={6}>
-  {selectedGatewayForDropDown && (
-    <>
-      {/* Card only for heading */}
-      <Box
-        sx={{
-          background: theme.palette.background.paper,
-          p: '20px',
-          borderRadius: '10px',
-          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #ddd',
-          textAlign: 'center',
-        }}
-      >
-        <Typography textAlign="center" fontWeight="bold">
-          Solar Production
-        </Typography>
-         <Box mt={2}>
-        <SolarUsage />
-      </Box>
-      </Box>
+            {selectedGatewayForDropDown && (
+              <>
+                {/* Card only for heading */}
+                <Box
+                  sx={{
+                    background: theme.palette.background.paper,
+                    p: '20px',
+                    borderRadius: '10px',
+                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid #ddd',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography textAlign="center" fontWeight="bold">
+                    Solar Production
+                  </Typography>
+                  <Box mt={2}>
+                    <SolarUsage />
+                  </Box>
+                </Box>
 
-      {/* Graph rendered outside the card */}
-     
-    </>
-  )}
-</Grid>
-           {/* First grpagh Grid USage */}
-           <Grid item xs={12} md={6}>
-  {selectedGatewayForDropDown && (
-    <>
-      {/* Card only for heading */}
-      <Box
-        sx={{
-          background: theme.palette.background.paper,
-          p: '20px',
-          borderRadius: '10px',
-          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #ddd',
-          textAlign: 'center',
-        }}
-      >
-        <Typography textAlign="center" fontWeight="bold">
-          Load Consumed
-        </Typography>
-         <Box mt={2}>
-        <GridUsage />
-      </Box>
-      </Box>
+                {/* Graph rendered outside the card */}
 
-      {/* Graph rendered outside the card */}
-     
-    </>
-  )}
-</Grid>
-           {/* First grpagh Grid In */}
-           <Grid item xs={12} md={6}>
-  {selectedGatewayForDropDown && (
-    <>
-      {/* Card only for heading */}
-      <Box
-        sx={{
-          background: theme.palette.background.paper,
-          p: '20px',
-          borderRadius: '10px',
-          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #ddd',
-          textAlign: 'center',
-        }}
-      >
-        <Typography textAlign="center" fontWeight="bold">
-          Grid In
-        </Typography>
-         <Box mt={2}>
-        <GridIn />
-      </Box>
-      </Box>
+              </>
+            )}
+          </Grid>
+          {/* First grpagh Grid USage */}
+          <Grid item xs={12} md={6}>
+            {selectedGatewayForDropDown && (
+              <>
+                {/* Card only for heading */}
+                <Box
+                  sx={{
+                    background: theme.palette.background.paper,
+                    p: '20px',
+                    borderRadius: '10px',
+                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid #ddd',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography textAlign="center" fontWeight="bold">
+                    Load Consumed
+                  </Typography>
+                  <Box mt={2}>
+                    <GridUsage />
+                  </Box>
+                </Box>
 
-      {/* Graph rendered outside the card */}
-     
-    </>
-  )}
-</Grid>
-             {/* First grpagh Grid out */}
-         <Grid item xs={12} md={6}>
-  {selectedGatewayForDropDown && (
-    <>
-      {/* Card only for heading */}
-      <Box
-        sx={{
-          background: theme.palette.background.paper,
-          p: '20px',
-          borderRadius: '10px',
-          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #ddd',
-          textAlign: 'center',
-        }}
-      >
-        <Typography textAlign="center" fontWeight="bold">
-          Grid Out
-        </Typography>
-         <Box mt={2}>
-        <GridOut />
-      </Box>
-      </Box>
+                {/* Graph rendered outside the card */}
 
-      {/* Graph rendered outside the card */}
-     
-    </>
-  )}
-</Grid>
+              </>
+            )}
+          </Grid>
+          {/* First grpagh Grid In */}
+          <Grid item xs={12} md={6}>
+            {selectedGatewayForDropDown && (
+              <>
+                {/* Card only for heading */}
+                <Box
+                  sx={{
+                    background: theme.palette.background.paper,
+                    p: '20px',
+                    borderRadius: '10px',
+                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid #ddd',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography textAlign="center" fontWeight="bold">
+                    Grid In
+                  </Typography>
+                  <Box mt={2}>
+                    <GridIn />
+                  </Box>
+                </Box>
+
+                {/* Graph rendered outside the card */}
+
+              </>
+            )}
+          </Grid>
+          {/* First grpagh Grid out */}
+          <Grid item xs={12} md={6}>
+            {selectedGatewayForDropDown && (
+              <>
+                {/* Card only for heading */}
+                <Box
+                  sx={{
+                    background: theme.palette.background.paper,
+                    p: '20px',
+                    borderRadius: '10px',
+                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid #ddd',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography textAlign="center" fontWeight="bold">
+                    Grid Out
+                  </Typography>
+                  <Box mt={2}>
+                    <GridOut />
+                  </Box>
+                </Box>
+
+                {/* Graph rendered outside the card */}
+
+              </>
+            )}
+          </Grid>
 
 
-          
+
         </Grid>
       </Grid>
     </Box>

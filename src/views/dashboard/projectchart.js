@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { DatePicker } from "@mui/x-date-pickers";
@@ -6,8 +6,9 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";  // Ensure this import is correct!
+import HighchartsReact from "highcharts-react-official";
 import urls from "../../urls/urls";
+
 function ProjectChart() {
   const { gateway_name, value_name } = useParams();
   const [chartData, setChartData] = useState([]);
@@ -15,7 +16,8 @@ function ProjectChart() {
   const [endDate, setEndDate] = useState(dayjs());
   const [selectedDay, setSelectedDay] = useState(null);
   const [hourlyData, setHourlyData] = useState([]);
-  const [unit, setUnit] = useState("kW");  // Default fallback
+  const [unit, setUnit] = useState("kW");
+
   useEffect(() => {
     const fetchChartData = async () => {
       try {
@@ -25,19 +27,19 @@ function ProjectChart() {
           `${urls.fetch_highchart_data}?gateway=${gateway_name}&value_name=${value_name}&from_date=${from_date}&to_date=${to_date}`
         );
         const json = await response.json();
-        // Step 1: Create a date map for range with 0
+
         const dateMap = {};
         let currentDate = dayjs(startDate);
         while (currentDate.isBefore(endDate.add(1, "day"))) {
           dateMap[currentDate.format("YYYY-MM-DD")] = 0;
           currentDate = currentDate.add(1, "day");
         }
-        // Step 2: Sum all data points per date
-        let unit = null;
+
+        let tempUnit = null;
         json.ports.forEach(port => {
           port.data.forEach(analyzer => {
-            if (!unit && analyzer.unit) {
-              unit = analyzer.unit;
+            if (!tempUnit && analyzer.unit) {
+              tempUnit = analyzer.unit;
             }
             analyzer.data.forEach(([date, value]) => {
               if (dateMap[date] !== undefined) {
@@ -46,25 +48,25 @@ function ProjectChart() {
             });
           });
         });
+
         const formattedData = Object.entries(dateMap).map(([date, value]) => ({
-          name: date,      // This makes it available as `this.name` on click
-          y: value,        // This is the value (y-axis)
-          z: unit
+          name: date,
+          y: value
         }));
-        console.log("Unit:", unit);
-        setChartData([
-          {
-            name: "Consumption",
-            data: formattedData,
-          },
-        ]);
-        if (unit) setUnit(unit);
+
+        setChartData([{ name: "Consumption", data: formattedData }]);
+        if (tempUnit) setUnit(tempUnit);
       } catch (error) {
-        console.error("Error fetching chart data:", error);
+        console.error("Error fetching daily chart data:", error);
       }
     };
+
     fetchChartData();
+    const interval = setInterval(fetchChartData, 5000);
+    return () => clearInterval(interval);
   }, [gateway_name, value_name, startDate, endDate]);
+
+  // ✅ Move generateHourlyData here globally
   const generateHourlyData = async (date) => {
     const formattedDate = dayjs(date).format("YYYY-MM-DD");
     try {
@@ -83,87 +85,134 @@ function ProjectChart() {
           });
         });
       });
-      const hourlyArray = Object.entries(hourlyMap);
-      setHourlyData([
-        {
-          name: "Hourly Consumption",
-          data: hourlyArray,
-        },
-      ]);
+      const hourlyArray = Object.entries(hourlyMap).map(([time, value]) => ({
+        name: time,
+        y: value
+      }));
+      setHourlyData([{ name: "Hourly Consumption", data: hourlyArray }]);
     } catch (error) {
       console.error("Error fetching hourly data:", error);
     }
   };
-  const HighChart = ({ title, data = [], yAxisLabel, type = "column", xAxisType = "category" }) => {
-    const options = {
-      chart: { type },
-      title: { text: title },
-      xAxis: {
-        type: xAxisType,
-        title: { text: xAxisType === "datetime" ? "Time" : "Date" },
-        labels: {
-          rotation: -45,
-          style: { fontSize: "12px" },
-        },
-      },
-      yAxis: { title: { text: yAxisLabel } },
-      series: data,
-      plotOptions: {
-        series: {
-          point: {
-            events: {
-              click: function () {
-                const clickedDate = dayjs(this.name, "YYYY-MM-DD");
-                if (!clickedDate.isValid()) {
-                  console.error("Invalid clickedDate:", this.name);
-                  return;
-                }
-                setSelectedDay(clickedDate);
-                generateHourlyData(clickedDate);
-                console.log("Clicked date:", clickedDate.format("YYYY-MM-DD"));
-              },
-            },
-          },
-        },
-        column: {
-          borderWidth: 0,
-          pointPadding: 0.2,
-        },
-      },
-      credits: { enabled: false },
-    };
-    return <HighchartsReact highcharts={Highcharts} options={options} />;
+
+  useEffect(() => {
+    generateHourlyData(startDate);  // ✅ Only once on load for startDate
+    const interval = setInterval(() => generateHourlyData(startDate), 5000);
+    return () => clearInterval(interval);
+  }, [gateway_name, value_name, startDate]);
+
+  const handleDateClick = (clickedDate) => {
+    setSelectedDay(dayjs(clickedDate)); // Set selected day
+    generateHourlyData(clickedDate);    // Fetch hourly data for clicked day
   };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <div>
         <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
           Gateway: {gateway_name} <br /> Value: {value_name}
         </Typography>
+
         <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
-          <DatePicker
-            label="Start Date"
-            value={startDate}
-            onChange={(newDate) => setStartDate(newDate)}
-          />
-          <DatePicker
-            label="End Date"
-            value={endDate}
-            onChange={(newDate) => setEndDate(newDate)}
-          />
+          <DatePicker label="Start Date" value={startDate} onChange={setStartDate} />
+          <DatePicker label="End Date" value={endDate} onChange={setEndDate} />
         </div>
-        <HighChart title="Daily Consumption" data={chartData} yAxisLabel={unit} />
+
+        <DailyChart title="Daily Consumption" data={chartData} yAxisLabel={unit} onBarClick={handleDateClick} />
+
         {selectedDay && (
-  <HighChart
-    title={`Hourly Consumption for ${selectedDay.format("YYYY-MM-DD")}`}  // :printer: This shows the selected date
-    data={hourlyData}
-    yAxisLabel={unit}
-    xAxisLabel="Time"
-    type="line"
-  />
-)}
+          <HourlyChart
+            title={`Hourly Consumption for ${selectedDay.format("YYYY-MM-DD")}`}
+            data={hourlyData}
+            yAxisLabel={unit}
+          />
+        )}
       </div>
     </LocalizationProvider>
   );
 }
+
+function DailyChart({ title, data, yAxisLabel, onBarClick }) {
+  const chartRef = useRef(null);
+
+  const options = {
+    chart: { type: "column", backgroundColor: "transparent" }, // ✅ Remove animation: false
+    title: { text: title },
+    xAxis: {
+      type: "category",
+      title: { text: "Date" },
+      labels: { rotation: -45, style: { fontSize: "12px" } },
+      lineWidth: 1,
+      gridLineWidth: 0
+    },
+    yAxis: {
+      title: { text: yAxisLabel },
+      gridLineWidth: 1,
+      lineWidth: 1
+    },
+    series: data,
+    credits: { enabled: false },
+    plotOptions: {
+      column: {
+        borderWidth: 0,
+        pointPadding: 0.2,
+        cursor: "pointer",
+        animation: { duration: 600 },  // ✅ Animate bars growing
+        point: {
+          events: {
+            click: function () {
+              onBarClick(this.name);
+            }
+          }
+        }
+      },
+      series: {
+        animation: { duration: 600 }  // ✅ Animate series
+      }
+    }
+  };
+
+  return (
+    <HighchartsReact ref={chartRef} highcharts={Highcharts} options={options} />
+  );
+}
+
+
+function HourlyChart({ title, data, yAxisLabel }) {
+  const chartRef = useRef(null);
+
+  const options = {
+    chart: { type: "line", backgroundColor: "transparent" }, // ✅ Remove animation: false
+    title: { text: title },
+    xAxis: {
+      type: "category",
+      title: { text: "Hour" },
+      labels: { rotation: -45, style: { fontSize: "12px" } },
+      lineWidth: 1,
+      gridLineWidth: 0
+    },
+    yAxis: {
+      title: { text: yAxisLabel },
+      gridLineWidth: 1,
+      lineWidth: 1
+    },
+    series: data,
+    credits: { enabled: false },
+    plotOptions: {
+      line: {
+        marker: { enabled: true },
+        animation: { duration: 600 }  // ✅ Smooth line animation
+      },
+      series: {
+        animation: { duration: 600 }  // ✅ Animate series
+      }
+    }
+  };
+
+  return (
+    <HighchartsReact ref={chartRef} highcharts={Highcharts} options={options} />
+  );
+}
+
+
 export default ProjectChart;

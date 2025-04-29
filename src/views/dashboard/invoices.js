@@ -429,9 +429,8 @@ const invoices = () => {
           <Table size='small'>
             <TableHead>
               <TableRow>
-                <TableCell><Typography fontWeight="bold">Description</Typography></TableCell>
-                <TableCell align="right"><Typography fontWeight="bold">Unit Price</Typography></TableCell>
-                <TableCell align="right"><Typography fontWeight="bold">Discount</Typography></TableCell>
+                <TableCell><Typography fontWeight="bold">Projects</Typography></TableCell>
+                <TableCell align="right"><Typography fontWeight="bold">Hardware</Typography></TableCell>
                 <TableCell align="right"><Typography fontWeight="bold">Amount</Typography></TableCell>
               </TableRow>
             </TableHead>
@@ -440,7 +439,6 @@ const invoices = () => {
               <TableRow>
                 <TableCell>Product A</TableCell>
                 <TableCell align="right">Rs.{selectedSubscription.price}</TableCell>
-                <TableCell align="right">{selectedSubscription.discount}</TableCell>
                 <TableCell align="right">Rs. {selectedSubscription.price - selectedSubscription.discount}</TableCell>
               </TableRow>
   
@@ -555,9 +553,8 @@ const invoices = () => {
           <Table size='small'>
             <TableHead>
               <TableRow>
-                <TableCell><Typography fontWeight="bold">Description</Typography></TableCell>
-                <TableCell align="right"><Typography fontWeight="bold">Unit Price</Typography></TableCell>
-                <TableCell align="right"><Typography fontWeight="bold">Discount</Typography></TableCell>
+                <TableCell><Typography fontWeight="bold">Projects</Typography></TableCell>
+                <TableCell align="right"><Typography fontWeight="bold">Hardware</Typography></TableCell>
                 <TableCell align="right"><Typography fontWeight="bold">Amount</Typography></TableCell>
               </TableRow>
             </TableHead>
@@ -565,7 +562,6 @@ const invoices = () => {
               {/* Dummy Data Rows */}
                <TableRow>
                 <TableCell></TableCell>
-                <TableCell align="right"></TableCell>
                 <TableCell align="right"></TableCell>
                 <TableCell align="right"></TableCell>
               </TableRow>

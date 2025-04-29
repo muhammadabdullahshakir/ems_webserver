@@ -40,6 +40,8 @@ const GraphContainer = React.lazy (() => import ('./components/GraphContainer.js
 const ManageAdmin = React.lazy (() => import ('./views/dashboard/ManageAdmin.js'))
 const CreateAdmin = React.lazy (() => import ('./views/dashboard/CreateAdmin.js'))
 const ManageGateway = React.lazy (() => import ('./views/dashboard/manage_gateway.js'))
+const ManageProjects = React.lazy (() => import ('./views/dashboard/manage_projects.js'))
+
 const Notification = React.lazy (() => import ('./views/dashboard/notification.js'))
 
 
@@ -84,6 +86,8 @@ const routes = [
   { path: '/dashboard/ManageAdmin' , name: "ManageAdmin" , element: ManageAdmin},
   { path: '/dashboard/CreateAdmin', name : "CreateAdmin", element: CreateAdmin },
   { path: '/dashboard/manage_gateway', name : "ManageGateway", element: ManageGateway },
+  { path: '/dashboard/manage_projects', name : "ManageProjects", element: ManageProjects },
+
   { path: '/dashboard/notification', name : "Notification", element: Notification },
   
 

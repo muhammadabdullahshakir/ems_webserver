@@ -33,6 +33,10 @@ const DashBoard = () => {
   const [totalAdmins, setTotalAdmins] = useState([])
   const [adminDetails, setAdminDetails] = useState([]);
   const [superAdminTotalProjectCount, setSuperAdminTotalProjectCount] = useState(0)
+  const [allUsers, setAllUsers] = useState(0)
+  const [allProjects, setAllProjects] = useState(0)
+  const [enrichedAdminDetails, setEnrichedAdminDetails] = useState([]);
+
       
       
   
@@ -92,11 +96,7 @@ const DashBoard = () => {
     },
   ]
 
-  const filteredData = dummyData.filter(
-    (data) =>
-      data.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      data.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+
 
   useEffect(() => {
     const fetchAdminDetails = async () => {
@@ -112,6 +112,55 @@ const DashBoard = () => {
   
     fetchAdminDetails();
   }, []);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [usersResponse, projectsResponse] = await Promise.all([
+          axios.get(urls.fetchUser),
+          axios.get(urls.getToalProject),
+        ]);
+  
+        const users = Array.isArray(usersResponse.data)
+          ? usersResponse.data
+          : usersResponse.data.users || [];
+  
+        const projects = Array.isArray(projectsResponse.data)
+          ? projectsResponse.data
+          : projectsResponse.data.projects || [];
+  
+        setAllUsers(users);
+        setAllProjects(projects);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+  
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (adminDetails.length && allUsers.length && allProjects.length) {
+      const updatedAdminDetails = adminDetails.map((admin) => {
+        const totalUsers = allUsers.filter(
+          (user) => String(user.created_by_id) === String(admin.id)
+        ).length;
+  
+        const totalProjects = allProjects.filter(
+          (project) => String(project.created_by_id) === String(admin.id)
+        ).length;
+  
+        return {
+          ...admin,
+          totalUsers,
+          totalProjects,
+        };
+      });
+  
+      setEnrichedAdminDetails(updatedAdminDetails);
+    }
+  }, [adminDetails, allUsers, allProjects]);
+  
   
 
 
@@ -301,22 +350,18 @@ const DashBoard = () => {
       </TableRow>
     </TableHead>
     <TableBody>
-  {adminDetails
-    .filter(
-      (admin) =>
-        admin.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        admin.email.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .map((admin, index) => (
-      <TableRow key={admin.id}>
-        <TableCell>{index + 1}</TableCell>
-        <TableCell>{admin.username}</TableCell>
-        <TableCell>{admin.email}</TableCell>
-        <TableCell>{admin.totalUsers}</TableCell>
-        <TableCell>{admin.totalProjects}</TableCell>
-      </TableRow>
-    ))}
+    {enrichedAdminDetails.map((admin, index) => (
+  <TableRow key={admin.id}>
+    <TableCell>{index + 1}</TableCell>
+    <TableCell>{admin.username}</TableCell> {/* This will now show Username correctly */}
+    <TableCell>{admin.email}</TableCell>
+    <TableCell>{admin.totalUsers}</TableCell>
+    <TableCell>{admin.totalProjects}</TableCell>
+  </TableRow>
+))}
+
 </TableBody>
+
 
   </Table>
 </TableContainer>

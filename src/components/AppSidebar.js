@@ -63,7 +63,7 @@ const AppSidebar = () => {
   const roleNavConfig = {
     superadmin: _nav.filter(item => ['DashBoard','Dash-Board','Pages', 'Manage Admins', 'Manage Admin','Create Admin', 'Manage Gateway','Invoices', 'Notification',].includes(item.name)),
     admin: _nav.filter(item => ['DashBoard','Dashboard','Pages', 'Manage Users', 'Create User', 'Manage Hardware', 'Manage Invoices', 'View Invoices'].includes(item.name)),
-    user: _nav.filter(item => ['DashBoard','Dashboard','Pages', 'Analytics', 'Invoices', 'User Details'].includes(item.name)),
+    user: _nav.filter(item => ['DashBoard','Dashboard','Pages','Manage Project', 'Analytics', 'Invoices', 'User Details'].includes(item.name)),
     // Add more roles as needed
   };
   

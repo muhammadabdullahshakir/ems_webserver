@@ -1,6 +1,7 @@
 import { AddRounded } from '@mui/icons-material';
-import { Button, Typography,  DialogTitle, DialogContent, DialogActions,  Dialog, Box, styled,   useTheme, IconButton, TextField,
- } from '@mui/material'
+import {
+  Button, Typography, DialogTitle, DialogContent, DialogActions, Dialog, Box, styled, useTheme, IconButton, TextField,
+} from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import urls from '../../urls/urls'
 import CloseIcon from '@mui/icons-material/Close';
@@ -23,190 +24,190 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 
 const AddProject = () => {
 
-     const handleClickOpen = () => setOpen(true);
-      const [open, setOpen] = useState(false);
-      const [projectName, setProjectName] = useState('');
-      const [longitude, setLongitude] = useState('');
-      const [latitude, setLatitude] = useState('');
-      const [address, setAddress] = useState('');
-        const theme = useTheme()
-        const [errors, setErrors] = useState({
-          projectName: '',
-          longitude: '',
-          latitude: '',
-          address: '',
-        });
-        
-      
-      const handleClose = () => {
-        setOpen(false);
-        setProjectName('');
-        setLongitude('');
-        setLatitude('');
-        setAddress('');
-      };
+  const handleClickOpen = () => setOpen(true);
+  const [open, setOpen] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [address, setAddress] = useState('');
+  const theme = useTheme()
+  const [errors, setErrors] = useState({
+    projectName: '',
+    longitude: '',
+    latitude: '',
+    address: '',
+  });
 
-      const handleSave = async () => {
-        const newErrors = {
-          projectName: projectName ? '' : 'Project name is required',
-          longitude: /^\d*\.?\d+$/.test(longitude) ? '' : longitude ? 'Only numbers allowed' : 'Longitude is required',
-          latitude: /^\d*\.?\d+$/.test(latitude) ? '' : latitude ? 'Only numbers allowed' : 'Latitude is required',
-          address: address ? '' : 'Address is required',
-        };
-      
-        setErrors(newErrors);
-      
-        const hasError = Object.values(newErrors).some(err => err);
-        if (hasError) return;
-      
-        const user = getUserFromLocalStorage();
-      
-        const newProject = {
-          name: projectName,
-          longitude,
-          latitude,
-          address,
-          user_id: user ? user.user_id : null,
-        };
-      
-        try {
-          const response = await axios.post(urls.createProject, newProject);
-          if (response.data) {
-            fetchProjects();
-          }
-          handleClose();
-        } catch (error) {
-          console.error("Error Posting Project", error.response || error.message || error);
-        }
-      };
-      
 
-          const fetchProjects = async () => {
-            try {
-              const response = await axios.get(urls.getUserProjects()); // Get URL from the helper
-              console.log("USER projects:", response.data);
-        
-              setProjects(Array.isArray(response.data.project_managers) ? response.data.project_managers : []);
-            } catch (error) {
-              console.error("Error Fetching Projects", error);
-            } finally {
-              setLoading(false);
-            }
-          };
-        
-          useEffect(() => {
-            fetchProjects();
-          }, []); 
-        
-        
+  const handleClose = () => {
+    setOpen(false);
+    setProjectName('');
+    setLongitude('');
+    setLatitude('');
+    setAddress('');
+  };
+
+  const handleSave = async () => {
+    const newErrors = {
+      projectName: projectName ? '' : 'Project name is required',
+      longitude: /^\d*\.?\d+$/.test(longitude) ? '' : longitude ? 'Only numbers allowed' : 'Longitude is required',
+      latitude: /^\d*\.?\d+$/.test(latitude) ? '' : latitude ? 'Only numbers allowed' : 'Latitude is required',
+      address: address ? '' : 'Address is required',
+    };
+
+    setErrors(newErrors);
+
+    const hasError = Object.values(newErrors).some(err => err);
+    if (hasError) return;
+
+    const user = getUserFromLocalStorage();
+
+    const newProject = {
+      name: projectName,
+      longitude,
+      latitude,
+      address,
+      user_id: user ? user.user_id : null,
+    };
+
+    try {
+      const response = await axios.post(urls.createProject, newProject);
+      if (response.data) {
+        fetchProjects();
+      }
+      handleClose();
+    } catch (error) {
+      console.error("Error Posting Project", error.response || error.message || error);
+    }
+  };
+
+
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get(urls.getUserProjects()); // Get URL from the helper
+      console.log("USER projects:", response.data);
+
+      setProjects(Array.isArray(response.data.project_managers) ? response.data.project_managers : []);
+    } catch (error) {
+      console.error("Error Fetching Projects", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+
   return (
     <Box>
-        <Button
-                  onClick={handleClickOpen}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "10px",
-                    backgroundColor: "rgba(255, 255, 255, 0.2)", // semi-transparent background
-                    backdropFilter: "blur(15px)", // creates the blur effect
-                    borderRadius: "4px", // rounded corners for a smoother look
-                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0)", // optional shadow for depth
-                  }}
-                >
-                  <AddRounded
-                   sx={{ color: "white" }} aria-label="add_project" />
-                  <Typography sx={{ color: "white", fontSize: "14px", fontWeight: 600 }}>
-                    Create Project
-                  </Typography>
-                </Button>
-                
-                {/* Dialog for Creating a Project */}
-              <BootstrapDialog
-                onClose={handleClose}
-                aria-labelledby="customized-dialog-title"
-                open={open}
-                maxWidth="md"
-                fullWidth
-                PaperProps={{
-                  sx: {
-                    borderRadius: "11px",
-                  },
-                }}
-              >
-                <DialogTitle sx={{ m: 0, p: 2, color: theme.palette.text.primary, fontWeight: "600", fontSize: "18px" }} id="customized-dialog-title">
-                  Create Project
-                </DialogTitle>
-                <IconButton aria-label="close" onClick={handleClose} sx={{ position: "absolute", right: 8, top: 8 }}>
-                  <CloseIcon />
-                </IconButton>
-                <DialogContent dividers>
-                  <Box display={"flex"} flexDirection={"column"} rowGap={2} width="100%">
-                  <TextField
-  size="small"
-  fullWidth
-  label="Project Name"
-  variant="outlined"
-  value={projectName}
-  onChange={(e) => setProjectName(e.target.value)}
-  error={Boolean(errors.projectName)}
-  helperText={errors.projectName}
-/>
+      <Button
+        onClick={handleClickOpen}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "8px",
+          padding: "10px",
+          backgroundColor: "rgba(255, 255, 255, 0.2)", // semi-transparent background
+          backdropFilter: "blur(15px)", // creates the blur effect
+          borderRadius: "4px", // rounded corners for a smoother look
+          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0)", // optional shadow for depth
+        }}
+      >
+        <AddRounded
+          sx={{ color: "white" }} aria-label="add_project" />
+        <Typography sx={{ color: "white", fontSize: "14px", fontWeight: 600 }}>
+          Create Project
+        </Typography>
+      </Button>
 
-<TextField
-  size="small"
-  fullWidth
-  label="Longitude"
-  variant="outlined"
-  value={longitude}
-  onChange={(e) => setLongitude(e.target.value)}
-  error={Boolean(errors.longitude)}
-  helperText={errors.longitude}
-/>
+      {/* Dialog for Creating a Project */}
+      <BootstrapDialog
+        onClose={handleClose}
+        aria-labelledby="customized-dialog-title"
+        open={open}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "11px",
+          },
+        }}
+      >
+        <DialogTitle sx={{ m: 0, p: 2, color: theme.palette.text.primary, fontWeight: "600", fontSize: "18px" }} id="customized-dialog-title">
+          Create Project
+        </DialogTitle>
+        <IconButton aria-label="close" onClick={handleClose} sx={{ position: "absolute", right: 8, top: 8 }}>
+          <CloseIcon />
+        </IconButton>
+        <DialogContent dividers>
+          <Box display={"flex"} flexDirection={"column"} rowGap={2} width="100%">
+            <TextField
+              size="small"
+              fullWidth
+              label="Project Name"
+              variant="outlined"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              error={Boolean(errors.projectName)}
+              helperText={errors.projectName}
+            />
 
-<TextField
-  size="small"
-  fullWidth
-  label="Latitude"
-  variant="outlined"
-  value={latitude}
-  onChange={(e) => setLatitude(e.target.value)}
-  error={Boolean(errors.latitude)}
-  helperText={errors.latitude}
-/>
+            <TextField
+              size="small"
+              fullWidth
+              label="Longitude"
+              variant="outlined"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              error={Boolean(errors.longitude)}
+              helperText={errors.longitude}
+            />
 
-<TextField
-  size="small"
-  fullWidth
-  label="Address"
-  variant="outlined"
-  value={address}
-  onChange={(e) => setAddress(e.target.value)}
-  error={Boolean(errors.address)}
-  helperText={errors.address}
-/>
- </Box>
-                </DialogContent>
-                <DialogActions>
-                  <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                    <Button
-                      variant="contained"
-                      size="medium"
-                      onClick={handleSave}
-                      sx={{
-                        
-                        color: "white",
-                        fontSize: "12px",
-                        fontWeight: "600",
-        
-                      }}
-                    >
-                      Save
-                    </Button>
-                  </Box>
-                </DialogActions>
-              </BootstrapDialog>
+            <TextField
+              size="small"
+              fullWidth
+              label="Latitude"
+              variant="outlined"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              error={Boolean(errors.latitude)}
+              helperText={errors.latitude}
+            />
+
+            <TextField
+              size="small"
+              fullWidth
+              label="Address"
+              variant="outlined"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              error={Boolean(errors.address)}
+              helperText={errors.address}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="contained"
+              size="medium"
+              onClick={handleSave}
+              sx={{
+
+                color: "white",
+                fontSize: "12px",
+                fontWeight: "600",
+
+              }}
+            >
+              Save
+            </Button>
+          </Box>
+        </DialogActions>
+      </BootstrapDialog>
     </Box>
   )
 }

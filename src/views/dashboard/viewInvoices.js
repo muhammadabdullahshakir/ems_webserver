@@ -1,124 +1,99 @@
 import {
   TableCell, TableContainer, TableHead, TableRow, Box, Table, Paper, Typography,
-  TableBody, IconButton, Menu, MenuItem, TextField
+  TableBody, IconButton, Menu, MenuItem, TextField, Button,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import urls from '../../urls/urls';
-
-
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import CloseIcon from '@mui/icons-material/Close';
 
 const ViewInvoices = () => {
   const [role, setRole] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
-    const [subscriptions, setSubscriptions] = useState([]);
-    const [editRowIndex, setEditRowIndex] = useState(null);
-    const [editedRow, setEditedRow] = useState({});
-    const [searchQuery, setSearchQuery] = useState('');
-
-  
-    useEffect(() => {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user) {
-        setRole(user.role || '');
-      }
-  
-      axios.get(urls.Invoice)
-        .then(response => {
-          const data = response.data;
-          console.log('Fetched subscription data:', data);
-  
-          const enrichedData = data.map((item) => ({
-            id: item.inv_id,
-            date: item.subscription || 'N/A',
-            username: item.start_date|| 'N/A',
-            email: item.end_date|| 'N/A',
-            phone: item.billing_price || 0,
-           
-            status: item.status || 'Unpaid',
-          }));
-  
-          setSubscriptions(enrichedData);
-        })
-        .catch(error => {
-          console.error('Error fetching subscriptions:', error);
-        });
-    }, []);
-  
-    
-  
-    const calculateTotal = (price, discount) => {
-      const priceVal = parseFloat(price || 0);
-      const discountVal = parseFloat(discount || 0);
-      return (priceVal - (priceVal * discountVal / 100)).toFixed(2);
-    };
-
+  const [subscriptions, setSubscriptions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
       setRole(user.role || '');
     }
+
+    axios.get(urls.Invoice)
+      .then(response => {
+        const data = response.data;
+        console.log('Fetched subscription data:', data);
+
+        const enrichedData = data.map((item) => ({
+          id: item.inv_id,
+          date: item.subscription || 'N/A',
+          username: item.start_date || 'N/A',
+          email: item.end_date || 'N/A',
+          phone: item.billing_price || 0,
+          status: item.status || 'Unpaid',
+        }));
+
+        setSubscriptions(enrichedData);
+      })
+      .catch(error => {
+        console.error('Error fetching subscriptions:', error);
+      });
   }, []);
 
-  const handleOpenMenu = (event, index) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedRow(index);
+  const handleOpenDialog = (row) => {
+    setSelectedRow(row);
+    setOpenDialog(true);
   };
 
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
     setSelectedRow(null);
   };
 
   const handleStatusChange = async (newStatus) => {
     if (selectedRow === null) return;
-  
+
     const updated = [...subscriptions];
-    const invoice = updated[selectedRow];
-    const originalStatus = invoice.status; // Save original status for rollback
-  
+    const invoice = updated.find((inv) => inv.id === selectedRow.id);
+    const originalStatus = invoice.status;
+
     // Optimistically update UI
     invoice.status = newStatus;
     setSubscriptions(updated);
-    handleCloseMenu();
-  
+
     try {
       // Send POST request to backend
       const response = await axios.post(
         urls.Invoice,
         {
-          inv_id: invoice.id, // Include inv_id in the body
+          inv_id: invoice.id,
           status: newStatus,
         }
       );
-  
+
       console.log('Status updated successfully:', response.data);
+      handleCloseDialog(); // Close dialog after updating
     } catch (error) {
       console.error('Error updating invoice status:', error);
-      
+
       // Revert UI on error
-      const reverted = [...subscriptions];
-      reverted[selectedRow].status = originalStatus;
-      setSubscriptions(reverted);
+      invoice.status = originalStatus;
+      setSubscriptions(updated);
     }
   };
-  
-  
 
-  // Filter subscriptions based on the searchTerm
   const filteredSubscriptions = subscriptions.filter((subscription) => {
     return (
       subscription.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-
-
       subscription.id.toString().includes(searchTerm) ||
       subscription.phone.toString().includes(searchTerm) ||
       subscription.date.toString().includes(searchTerm)
-
     );
   });
 
@@ -147,38 +122,39 @@ const ViewInvoices = () => {
       </Box>
 
       {role === 'admin' && (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ overflow: "visible" }}>
           <Table>
             <TableHead>
               <TableRow>
-              <TableCell><b>Sr No</b></TableCell>
-
-                <TableCell><b>Id</b></TableCell>
+                <TableCell><b>Sr No</b></TableCell>
+                <TableCell><b>Invoice Id</b></TableCell>
                 <TableCell><b>Subscription</b></TableCell>
                 <TableCell><b>Start Date</b></TableCell>
                 <TableCell><b>End Date</b></TableCell>
                 <TableCell><b>Billing Price</b></TableCell>
-                
                 <TableCell><b>Status Paid</b></TableCell>
-                <TableCell><b>Action</b></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredSubscriptions.map((row, index) => (
-
-                <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell> {/* Sr No. */}
-                  
-                  {[
-                    'id', 'date', 'username', 'email', 'phone',
-                    
-                  ].map((field, i) => (
+                <TableRow
+                  key={index}
+                  onClick={() => handleOpenDialog(row)}
+                  hover
+                  style={{
+                    cursor: 'pointer',
+                    transition: "all 0.3s ease-in-out",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <TableCell>{index + 1}</TableCell>
+                  {['id', 'date', 'username', 'email', 'phone'].map((field, i) => (
                     <TableCell key={i}>{row[field]}</TableCell>
                   ))}
-
                   <TableCell>
-                    <Typography 
-                      sx={{ 
+                    <Typography
+                      sx={{
                         display: 'inline-block',
                         padding: '5px 10px',
                         borderRadius: '12px',
@@ -190,11 +166,6 @@ const ViewInvoices = () => {
                     </Typography>
                   </TableCell>
 
-                  <TableCell>
-                    <IconButton onClick={(e) => handleOpenMenu(e, index)}>
-                      <MoreVertIcon />
-                    </IconButton>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -202,14 +173,88 @@ const ViewInvoices = () => {
         </TableContainer>
       )}
 
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleCloseMenu}
-      >
-        <MenuItem onClick={() => handleStatusChange('Paid')}>Paid</MenuItem>
-        <MenuItem onClick={() => handleStatusChange('Unpaid')}>Unpaid</MenuItem>
-      </Menu>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <Box>
+          <DialogTitle textAlign={'center'} sx={{ m: 0, p: 2, fontWeight: "bold" }}>
+            Invoice Details
+          </DialogTitle>
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseDialog}
+            sx={(theme) => ({
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: theme.palette.grey[500],
+            })}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <DialogContent dividers>
+          <Box display={'flex'} flexDirection={'row'} justifyContent={'space-around'}>
+            <Box>
+              <Typography fontWeight="bold">Bill To</Typography>
+              <Typography>
+                <b>start Date:</b> {selectedRow?.username}<br />
+                <b>End Date:</b> {selectedRow?.email}<br />
+                <b>Price:</b> {selectedRow?.phone}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography fontWeight={'bold'}>Invoice #</Typography>
+              <Typography>INV{selectedRow?.id}</Typography>
+
+              <Box>
+                <Typography fontWeight={'bold'}>Subscription</Typography>
+                <Typography>{selectedRow?.date}</Typography>
+              </Box>
+            </Box>
+            <Box>
+              <Typography fontWeight={'bold'}>Billing Price</Typography>
+              <Typography fontWeight={'bold'} fontSize={'large'}>PKR. {selectedRow?.phone}</Typography>
+            </Box>
+          </Box>
+          <hr/>
+
+        </DialogContent>
+
+        <DialogActions>
+          <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <Box>
+              <Button
+                onClick={() => handleStatusChange('Paid')}
+                sx={{
+                  backgroundColor: 'success.light',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'success.main',
+                  },
+                  marginRight: '10px',
+                }}
+              >
+                Mark as Paid
+              </Button>
+              <Button
+                onClick={() => handleStatusChange('Unpaid')}
+                sx={{
+                  backgroundColor: 'warning.light',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'warning.main',
+                  },
+                }}
+              >
+                Mark as Unpaid
+              </Button>
+            </Box>
+
+
+          </Box>
+        </DialogActions>
+
+      </Dialog>
     </Box>
   );
 };

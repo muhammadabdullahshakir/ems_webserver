@@ -66,7 +66,7 @@ const urls = {
   adminDetails: `${API_Base_url}/admin_detail/`,
   CreateOrUpdateSubscription: `${API_Base_url}/create_or_update_subscription/`,
   Invoice: `${API_Base_url}/invoice/`,
-
+  updateProject: `${API_Base_url}/edit_project_manager/`, 
 
   getAnalyzerValuesByGateway: (gateway_name) =>
     `${API_Base_url}/gateway/${gateway_name}/analyzers/`, //analyzers value for animation and for analyzer box dialog

@@ -73,6 +73,16 @@ const _nav = [
   },
   {
     component: CNavItem,
+    name: 'Manage Project',
+    to: '/dashboard/manage_projects',
+    icon: <CIcon icon={cilMemory} customClassName="nav-icon" />, 
+    badge: {
+      color: 'info',
+    },
+  },
+
+  {
+    component: CNavItem,
     name: 'Analytics',
     to: '/dashboard/Analytics',
     icon: <CIcon icon={cilBarChart} customClassName="nav-icon" />, 

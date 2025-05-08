@@ -144,15 +144,12 @@ const CreateUser = () => {
     if (!formData.email) newErrors.email = "Email is required";
     if (!formData.contact) newErrors.contact = "Phone number is required";
     if (!formData.password && !isEditMode) newErrors.password = "Password is required";
-    if (!formData.zip_code) newErrors.zip_code = "Zip code is required";
-    if (!formData.adress) newErrors.adress = "Address is required";
+  
     if (formData.contact && !isPhoneValid(formData.contact)) {
       newErrors.contact = "Phone number must be exactly 11 digits";
     }
 
-    if (!selectedImage && !formData.image) {
-      newErrors.image = "Image is required";
-    }
+  
             
     
   
@@ -164,9 +161,7 @@ const CreateUser = () => {
       newErrors.contact = "Invalid phone number";
     }
   
-    if (!isZipCodeValid(formData.zip_code)) {
-      newErrors.zip_code = "Invalid zip code";
-    }
+  
 
   
     if (Object.keys(newErrors).length > 0) {
@@ -180,8 +175,12 @@ const CreateUser = () => {
     try {
       let imageUrl = formData.image;
       if (selectedFile) {
+        const timestamp = new Date().getTime();
+        const randomNumber = Math.floor(Math.random() * 10000);
+        const uniqueFilename = `image_${timestamp}_${randomNumber}.png`;
+  
         const uploadForm = new FormData();
-        uploadForm.append('image', selectedFile);
+        uploadForm.append('image', selectedFile, uniqueFilename);
         const uploadResponse = await axios.post('https://mexemai.com/bucket/update/ems', uploadForm);
         imageUrl = uploadResponse.data.image_url;
       }
@@ -193,8 +192,9 @@ const CreateUser = () => {
       };
   
       const cleanedPayload = Object.fromEntries(
-        Object.entries(payload).filter(([_, v]) => v !== undefined)
+        Object.entries(payload).filter(([_, v]) => v !== undefined && v !== '')
       );
+      
   
       const apiUrl = isEditMode ? urls.updateUser(userId) : urls.createUser;
       const method = 'POST';
@@ -208,7 +208,7 @@ const CreateUser = () => {
       const responseData = await response.json();
   
       if (response.ok) {
-        alert(isEditMode ? 'User updated successfully' : 'User created successfully');
+        alert(isEditMode ? 'Admin updated successfully' : 'Admin created successfully');
         navigate('/dashboard/manageAdmin');
       } else {
         alert(responseData?.message || 'An error occurred');
@@ -235,72 +235,81 @@ const CreateUser = () => {
         <Box sx={{ flex: 1 }}>
         <TextField
   name="firstname"
+  label="First Name *"
   value={formData.firstname}
   onChange={handleChange}
   fullWidth
-  placeholder="First Name"
   sx={{ mb: 2 }}
   error={!!errors.firstname}
   helperText={errors.firstname}
 />
-  
-          <TextField name="lastname" value={formData.lastname} onChange={handleChange} fullWidth placeholder="Last Name" sx={{ mb: 2 }}   error={!!errors.lastname}
-  helperText={errors.lastname}/>
-          <TextField
+
+<TextField
+  name="lastname"
+  label="Last Name *"
+  value={formData.lastname}
+  onChange={handleChange}
+  fullWidth
+  sx={{ mb: 2 }}
+  error={!!errors.lastname}
+  helperText={errors.lastname}
+/>
+
+<TextField
   name="email"
+  label="Email *"
   value={formData.email}
   onChange={handleChange}
   fullWidth
-  placeholder="Email"
   sx={{ mb: 2 }}
   error={!!errors.email}
   helperText={errors.email}
 />
 
-
 <TextField
   name="contact"
+  label="Phone Number *"
   value={formData.contact}
   onChange={handleChange}
   fullWidth
-  placeholder="Phone Number"
   sx={{ mb: 2 }}
   error={!!errors.contact}
   helperText={errors.contact}
 />
 
-<TextField
-  name="adress"
-  value={formData.adress}
-  onChange={handleChange}
-  fullWidth
-  placeholder="Address"
-  sx={{ mb: 2 }}
-  error={!!errors.adress}
-  helperText={errors.adress}
-/>
-
-
-          <TextField
-  name="zip_code"
-  value={formData.zip_code}
-  onChange={handleChange}
-  fullWidth
-  placeholder="Zip Code"
-  sx={{ mb: 2 }}
-  error={!!errors.zip_code}
-  helperText={errors.zip_code}
-/>
+    
+    <TextField
+      name="adress"
+      label="Address"
+      value={formData.adress}
+      onChange={handleChange}
+      fullWidth
+      sx={{ mb: 2 }}
+      error={!!errors.adress}
+      helperText={errors.adress}
+    />
+    
+    
+              <TextField
+      name="zip_code"
+      label="Zip code"
+      value={formData.zip_code}
+      onChange={handleChange}
+      fullWidth
+      sx={{ mb: 2 }}
+      error={!!errors.zip_code}
+      helperText={errors.zip_code}
+    />
 
 
 
 {!isEditMode && (
   <TextField
-    name="password"
+            name="password"
+        label="Password *"
     value={formData.password}
     onChange={handleChange}
     fullWidth
-    placeholder="Password"
     type="password"
     sx={{ mb: 2 }}
     error={!!errors.password}

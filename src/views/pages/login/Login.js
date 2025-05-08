@@ -18,7 +18,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState(""); // Define state for role
+  const [role, setRole] = useState(""); 
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -44,22 +44,24 @@ const Login = () => {
       const { success, user_id, firstname, lastname, role, image, unique_key, contact,
         adress,
         zip_code,
+        access, 
+        refresh, 
          } = response.data;
 
          console.log('Response data:', response.data)
 
 
       if (success) {
-        // Set role in state
-        setRole(role); // This is where you use setRole
+        setRole(role); 
 
         login({
-          user_id, firstname, lastname, role, image, unique_key, email, contact, adress, zip_code
+          user_id, firstname, lastname, role, image, unique_key, email, contact, adress, zip_code,  access, 
+          refresh, 
         });
         
         toast.success("Login successful!");
 
-        // Navigate based on role
+        // Navigation based on role
         if (role === "admin" || role === "user") {
           navigate("/dashboard");
         } else {
@@ -79,7 +81,7 @@ const Login = () => {
 
   return (
     <Grid container component="main" sx={{ height: "100vh", bgcolor: "white" }}>
-      {/* Left Side Panel */}
+  
       <Grid
         item
         xs={12}
@@ -161,7 +163,6 @@ const Login = () => {
             boxShadow: "5px 5px 15px rgba(0, 0, 0, 0.1)",
           }}
         >
-          {/* Image on top */}
           <img
             src={frame1}
             alt="Image description"
@@ -173,12 +174,10 @@ const Login = () => {
             }}
           />
 
-          {/* Heading */}
           <Typography variant="h5" fontWeight="bold" color={"black"} gutterBottom>
             Login to Your Account
           </Typography>
 
-          {/* Form */}
           <form onSubmit={handleSubmit}>
             <TextField
               label="E-mail Address"

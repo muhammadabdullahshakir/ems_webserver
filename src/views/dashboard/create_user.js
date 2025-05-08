@@ -167,15 +167,12 @@ const handleChange = (e) => {
     if (!formData.email) newErrors.email = "Email is required";
     if (!formData.contact) newErrors.contact = "Phone number is required";
     if (!formData.password && !isEditMode) newErrors.password = "Password is required";
-    if (!formData.zip_code) newErrors.zip_code = "Zip code is required";
-    if (!formData.adress) newErrors.adress = "Address is required";
+   
     if (formData.contact && !isPhoneValid(formData.contact)) {
       newErrors.contact = "Phone number must be exactly 11 digits";
     }
 
-    if (!selectedImage && !formData.image) {
-      newErrors.image = "Image is required";
-    }
+   
 
     if (!isEmailValid(formData.email)) {
       newErrors.email = "Invalid email format";
@@ -185,9 +182,7 @@ const handleChange = (e) => {
       newErrors.contact = "Invalid phone number";
     }
   
-    if (!isZipCodeValid(formData.zip_code)) {
-      newErrors.zip_code = "Invalid zip code";
-    }
+  
 
   
     if (Object.keys(newErrors).length > 0) {
@@ -227,8 +222,9 @@ const handleChange = (e) => {
   
       // Clean up undefined values
       const cleanedUserPayload = Object.fromEntries(
-        Object.entries(userPayload).filter(([_, v]) => v !== undefined)
+        Object.entries(userPayload).filter(([_, v]) => v !== undefined && v !== '' && v !== null)
       );
+      
   
       // Create the gateway object separately
       const gatewayPayload = {
@@ -307,48 +303,57 @@ const handleChange = (e) => {
 
       <Box sx={{ display: 'flex', gap: 3 }}>
         <Box sx={{ flex: 1 }}>
-            <TextField
-      name="firstname"
-      value={formData.firstname}
-      onChange={handleChange}
-      fullWidth
-      placeholder="First Name"
-      sx={{ mb: 2 }}
-      error={!!errors.firstname}
-      helperText={errors.firstname}
-    />
-      
-              <TextField name="lastname" value={formData.lastname} onChange={handleChange} fullWidth placeholder="Last Name" sx={{ mb: 2 }}   error={!!errors.lastname}
-      helperText={errors.lastname}/>
-              <TextField
-      name="email"
-      value={formData.email}
-      onChange={handleChange}
-      fullWidth
-      placeholder="Email"
-      sx={{ mb: 2 }}
-      error={!!errors.email}
-      helperText={errors.email}
-    />
-    
-    
-    <TextField
-      name="contact"
-      value={formData.contact}
-      onChange={handleChange}
-      fullWidth
-      placeholder="Phone Number"
-      sx={{ mb: 2 }}
-      error={!!errors.contact}
-      helperText={errors.contact}
-    />
+        <TextField
+  name="firstname"
+  label="First Name *"
+  value={formData.firstname}
+  onChange={handleChange}
+  fullWidth
+  sx={{ mb: 2 }}
+  error={!!errors.firstname}
+  helperText={errors.firstname}
+/>
+
+<TextField
+  name="lastname"
+  label="Last Name *"
+  value={formData.lastname}
+  onChange={handleChange}
+  fullWidth
+  sx={{ mb: 2 }}
+  error={!!errors.lastname}
+  helperText={errors.lastname}
+/>
+
+<TextField
+  name="email"
+  label="Email *"
+  value={formData.email}
+  onChange={handleChange}
+  fullWidth
+  sx={{ mb: 2 }}
+  error={!!errors.email}
+  helperText={errors.email}
+/>
+
+<TextField
+  name="contact"
+  label="Phone Number *"
+  value={formData.contact}
+  onChange={handleChange}
+  fullWidth
+  sx={{ mb: 2 }}
+  error={!!errors.contact}
+  helperText={errors.contact}
+/>
+
     
     <TextField
       name="adress"
+      label="Address"
       value={formData.adress}
       onChange={handleChange}
       fullWidth
-      placeholder="Address"
       sx={{ mb: 2 }}
       error={!!errors.adress}
       helperText={errors.adress}
@@ -357,10 +362,10 @@ const handleChange = (e) => {
     
               <TextField
       name="zip_code"
+      label="Zip code"
       value={formData.zip_code}
       onChange={handleChange}
       fullWidth
-      placeholder="Zip Code"
       sx={{ mb: 2 }}
       error={!!errors.zip_code}
       helperText={errors.zip_code}
@@ -371,10 +376,10 @@ const handleChange = (e) => {
     {!isEditMode && (
       <TextField
         name="password"
+        label="Password *"
         value={formData.password}
         onChange={handleChange}
         fullWidth
-        placeholder="Password"
         type="password"
         sx={{ mb: 2 }}
         error={!!errors.password}

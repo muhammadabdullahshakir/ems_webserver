@@ -24,6 +24,18 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import CloseIcon from '@mui/icons-material/Close'
 import { styled } from '@mui/material/styles'
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { useRef } from 'react'
+
+// Fix missing marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+})
 
 // Moved styled component outside the main component
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -51,6 +63,20 @@ const ManageProjects = () => {
   const [latitude, setLatitude] = useState('')
   const [address, setAddress] = useState('')
   const [errors, setErrors] = useState({})
+  const mapRef = useRef()
+
+
+  const LocationSelector = ({ setLatitude, setLongitude }) => {
+    useMapEvents({
+      click(e) {
+        const { lat, lng } = e.latlng
+        setLatitude(lat.toFixed(6))
+        setLongitude(lng.toFixed(6))
+      },
+    })
+    return null
+  }
+  
 
   const handleClickOpen = useCallback((project) => {
     setSelectedProject(project)
@@ -289,6 +315,47 @@ const ManageProjects = () => {
               error={Boolean(errors.address)}
               helperText={errors.address}
             />
+            <Box
+  sx={{
+    mt: 2,
+    height: '320px',
+    border: '1px solid #ccc',
+    borderRadius: 2,
+    overflow: 'hidden',
+  }}
+>
+  <MapContainer
+    center={[
+      parseFloat(latitude) || 33.6844,
+      parseFloat(longitude) || 73.0479,
+    ]}
+    zoom={13}
+    scrollWheelZoom={true}
+    zoomControl={true}
+    style={{ height: '100%', width: '100%' }}
+    whenCreated={(mapInstance) => {
+      mapRef.current = mapInstance
+      setTimeout(() => {
+        mapInstance.invalidateSize()
+      }, 0)
+    }}
+  >
+    <TileLayer
+      attribution=""
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    />
+    <LocationSelector
+      latitude={latitude}
+      longitude={longitude}
+      setLatitude={setLatitude}
+      setLongitude={setLongitude}
+    />
+    {latitude && longitude && (
+      <Marker position={[parseFloat(latitude), parseFloat(longitude)]} />
+    )}
+  </MapContainer>
+</Box>
+
           </Box>
         </DialogContent>
         <DialogActions>

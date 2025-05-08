@@ -143,9 +143,11 @@ fetchGateways()
           alignItems: "center",
           gap: "8px",
           padding: "10px",
+          width:'100%',
           backgroundColor: "rgba(79, 77, 77, 0.2)",
           backdropFilter: "blur(15px)",
           borderRadius: "4px",
+          mb:"10px",
           boxShadow: "0px 4px 6px rgba(0, 0, 0, 0)",
         }}
       >

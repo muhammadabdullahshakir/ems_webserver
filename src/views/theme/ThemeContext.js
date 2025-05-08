@@ -34,7 +34,8 @@ export const ThemeContextProvider = ({ children }) => {
                   sidebar:"#1D1D1E",
                   create: "#f5f5f5",
                   footer: "#212631",
-                  card:"rgba(196, 196, 219, 0.94)"
+                  card:"rgba(196, 196, 219, 0.94)",
+                  gatewaycard:"#F8F9FA"
 
                 },
                 text: {
@@ -62,7 +63,8 @@ export const ThemeContextProvider = ({ children }) => {
                   sidebar:"#2B344A",
                   create: "rgb(53, 68, 107)",
                   footer: "#212631", 
-                  card:"rgba(95, 95, 106, 0.89)"
+                  card:"rgba(95, 95, 106, 0.89)",
+                  gatewaycard:"rgb(53, 68, 107)"
                 },
                 text: {
                   primary:  "#cccccc",

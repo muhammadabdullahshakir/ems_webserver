@@ -52,6 +52,10 @@ import SolarUsage from './PMGraphs/SolarUsage'
 import GridUsage from './PMGraphs/GridUsage'
 import GridIn from './PMGraphs/GridIn'
 import GridOut from './PMGraphs/GridOut'
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import IconButton from '@mui/material/IconButton';
+
 
 
 
@@ -171,6 +175,54 @@ const ProjectManager = () => {
   const [newNodes, setNewNodes] = useState(initialNodes)
   const [newEdges, setNewEdges] = useState(initialEdges)
   const [role, setRole] = useState('');
+  const [expandedAnalyzers, setExpandedAnalyzers] = useState({});
+  const [expandedGateways, setExpandedGateways] = useState({});
+
+  const toggleGatewayExpansion = (gatewayName) => {
+    setExpandedGateways((prev) => {
+      const isExpanding = !prev[gatewayName];
+
+      if (isExpanding) {
+        const selectedGatewayData = gateways.find(gw => gw.gateway_name === gatewayName);
+        const gatewayId = selectedGatewayData ? selectedGatewayData.G_id : null;
+
+        if (gatewayId) {
+          localStorage.setItem("selectedGatewayId", gatewayId);
+        }
+
+        // Save selected gateway name per project
+        let storedGateways = JSON.parse(localStorage.getItem("selectedGateways")) || {};
+        storedGateways[project_id] = gatewayName;
+        localStorage.setItem("selectedGateways", JSON.stringify(storedGateways));
+
+        // Update the local state
+        setSelectedGatewayForDropdown(gatewayName);
+      }
+
+      return {
+        ...prev,
+        [gatewayName]: isExpanding,
+      };
+    });
+  };
+  // useEffect(() => {
+  //   const storedGateways = JSON.parse(localStorage.getItem("selectedGateways")) || {};
+  //   const defaultGateway = storedGateways[project_id];
+
+  //   if (defaultGateway) {
+  //     setExpandedGateways(prev => ({
+  //       ...prev,
+  //       [defaultGateway]: true,
+  //     }));
+  //   }
+  // }, [gateways]); // or after fetching dropdownGateways
+  const toggleAnalyzer = (key) => {
+    setExpandedAnalyzers((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -203,6 +255,8 @@ const ProjectManager = () => {
     return updatedEdges
   }
 
+  
+
   const handleGatewayChange = (event) => {
     const selectedGateway = event.target.value; // Get selected gateway name or ID
     setSelectedGatewayForDropdown(selectedGateway);
@@ -228,6 +282,11 @@ const ProjectManager = () => {
     const storedGateways = JSON.parse(localStorage.getItem("selectedGateways")) || {};
     return storedGateways[project_id] || ""; // Get the correct gateway for the project
   });
+
+  const backgroundStyle =
+  theme.palette.mode === 'light'
+    ? `linear-gradient(to right, rgba(201, 202, 203, 0.91), rgba(209, 207, 207, 0.3)), url('https://i0.wp.com/calmatters.org/wp-content/uploads/2021/11/clean-energy-power-grid.jpg?fit=1836%2C1059&ssl=1') center/cover no-repeat`
+    : `linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(25, 25, 25, 0.6)), url('https://i0.wp.com/calmatters.org/wp-content/uploads/2021/11/clean-energy-power-grid.jpg?fit=1836%2C1059&ssl=1') center/cover no-repeat`;
 
 
 
@@ -480,9 +539,9 @@ const ProjectManager = () => {
   const getIconAndBgColor = (purpose) => {
     if (purpose === "Gateway") {
       return {
-        icon: <ContactlessIcon fontSize="large" />,
-        bgColor: "linear-gradient(135deg,rgba(169, 181, 172, 0.91),rgba(32, 131, 45, 0.92))", // Deep Blue & Modern Green
-        mainBoxBg: theme.palette.background.card
+        icon: null,
+        bgColor: "", // Deep Blue & Modern Green
+        mainBoxBg: theme.palette.background.gatewaycard
       };
     } else if (["COM1", "COM2", "ETH1", "ETH2"].includes(purpose)) {
       return {
@@ -492,19 +551,19 @@ const ProjectManager = () => {
       };
     } else if (purpose === "Analyzer") {
       return {
-        icon: <CalendarTodayIcon fontSize="large" />,
-        bgColor: "linear-gradient(135deg, #00695C, #2E7D32)", // Professional Teal & Deep Green
-        mainBoxBg: theme.palette.background.card
+        icon: null,
+        bgColor: "", // Professional Teal & Deep Green
+        mainBoxBg: theme.palette.background.gatewaycard
       };
     } else {
       return {
         icon: <ContactlessIcon fontSize="large" />,
-        bgColor: "linear-gradient(135deg,rgba(168, 198, 97, 0.89),rgba(198, 201, 10, 0.89))", // Elegant Dark Gray
+        bgColor: "linear-gradient(135deg, #E8489E, #E62E8E, #D32999, #A31DB3, #9F1CB5, #8723C1)", // Elegant Dark Gray
         mainBoxBg: theme.palette.background.card
       };
     }
   };
-  const TreeBox = ({ label, purpose, onClick }) => {
+  const TreeBox = ({ label, purpose, onClick, sticker }) => {
     const { icon, bgColor, mainBoxBg } = getIconAndBgColor(purpose);
 
     return (
@@ -512,44 +571,71 @@ const ProjectManager = () => {
         sx={{
           p: '10px',
           borderRadius: '10px',
-          boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.08)',
+
           background: mainBoxBg,
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
           minWidth: '150px',
           maxWidth: '100%',
           cursor: onClick ? 'pointer' : 'default',
           position: 'relative',
-          overflow: "visible"
+          overflow: 'visible',
         }}
         onClick={onClick}
       >
-        {/* ✅ Small Box with Background Color and White Icon */}
-        <Box
-          sx={{
-            width: '50px',
-            height: '50px',
-            background: bgColor,
-            borderRadius: '5px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'absolute',
-            top: '-12px',
-            left: '5px',
-          }}
-        >
-          {React.cloneElement(icon, { style: { color: 'white' } })} {/* ✅ White Icon */}
-        </Box>
+        {/* 🔴 Top-Right Sticker */}
+        {sticker && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-10px',
+              right: '-10px',
+              background: "linear-gradient(135deg, #E8489E, #E62E8E, #D32999, #A31DB3, #9F1CB5, #8723C1)",
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '12px',
+              px: 1.5,
+              py: 0.5,
+              borderRadius: '6px',
+              zIndex: 2,
+            }}
+          >
+            {sticker}
+          </Box>
+        )}
 
-        {/* ✅ Label - Only Analyzer is Right-Aligned */}
+        {/* ✅ Icon Box (aligned top-left) */}
+        {icon && (
+          <Box
+            sx={{
+              width: '50px',
+              height: '50px',
+              background: bgColor,
+              borderRadius: '5px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'absolute',
+              top: '-12px',
+              left: '10px', // aligned to the left
+            }}
+          >
+            {React.cloneElement(icon, { style: { color: 'white' } })}
+          </Box>
+        )}
+
+        {/* ✅ Label */}
         <Typography
           variant="subtitle1"
           fontWeight="bold"
           sx={{
-            textAlign: purpose === 'Analyzer' ? 'right' : 'center', // ✅ Only Analyzer Right-Aligned
-            flexGrow: 1,
-            paddingLeft: '40px', // Prevent overlap with left-side icon
+            marginTop: icon ? '40px' : '0px',
+            textAlign: 'center',
+            width: '100%',
           }}
         >
           {label}
@@ -559,265 +645,123 @@ const ProjectManager = () => {
   };
 
 
+
+
+
   return (
 
     <Box sx={{ p: 2, }}>
       {/* Responsive Grid Layout */}
       <Grid container spacing={0}>
-        <Grid container spacing={1} alignItems="stretch" mt={1}>
+        <Grid container spacing={1} alignItems="stretch" mt={1} >
 
 
 
 
-          {/* ✅ Left Box (Placeholder Content) */}
-          <Grid item xs={12} md={6}>
-            <motion.div
-              initial={{ opacity: 0, y: 150 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-            >
-              <Box
-                sx={{
-                  p: { xs: '15px', sm: '20px', md: '25px' },
-                  borderRadius: '10px',
-                  maxHeight: { xs: 'auto', md: '690px' },
-                  minHeight: { xs: '300px', md: '490px' },
-                  display: "flex",
-                  flexDirection: "column",
-                  background: `linear-gradient(to right, rgba(201, 202, 203, 0.91), rgba(209, 207, 207, 0.3)), 
-      url('https://i0.wp.com/calmatters.org/wp-content/uploads/2021/11/clean-energy-power-grid.jpg?fit=1836%2C1059&ssl=1') center/cover no-repeat`,
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    top: 30,
-                    left: 20,
-                    fontSize: { xs: '1rem', sm: '1.2rem' },
-                  }}
-                >
-                  👋 Welcome Back
-                </Typography>
-
-                <Typography
-                  variant="h2"
-                  sx={{
-                    fontSize: { xs: '2rem', sm: '3rem', md: '3.5rem' },
-                    textAlign: "center",
-                    mt: { xs: 4, md: 10 }
-                  }}
-                >
-                  {projectName}
-                </Typography>
-              </Box>
-
-            </motion.div>
-          </Grid>
 
           {/* ✅ Weather Information (Right Side) */}
-          <Grid item xs={12} md={6} onClick={handleOpen} style={{ cursor: "pointer" }}>
+          <Grid item xs={12} onClick={handleOpen} style={{ cursor: "pointer" }}>
             <motion.div
               whileHover={{ scale: 1.03, boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.2)" }}
               transition={{ duration: 0.3 }}
             >
               <Box
                 sx={{
-                  background: theme.palette.background.paper,
-                  p: "20px",
+                  background:backgroundStyle,
+                   p: "20px",
                   borderRadius: "12px",
                   boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
                   border: "1px solid #ddd",
                   textAlign: "center",
-                  maxHeight: "690px", // Increased height
-                  minHeight: "490px", // Increased height
+                  maxHeight: "400px", // Increased height
+                  minHeight: "230px", // Increased height
+                  position: "relative", // Allow positioning of children
                 }}
               >
-                {/* ✅ Current Condition */}
-                <Typography variant="h6" fontWeight="bold">
-                  {weatherData?.currentConditions?.conditions}
-                </Typography>
-
-                {weatherData ? (
-                  <Box>
-                    {/* ✅ Temperature with Animation */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <Box
-                        sx={{
-                          fontSize: "32px",
-                          fontWeight: "bold",
-                          display: "inline-block",
-                          color: theme.palette.text.primary,
-                        }}
-                      >
-                        {weatherData.currentConditions.temp.toFixed(1)}°C
-                      </Box>
-                    </motion.div>
-
-                    {/* ✅ Weather Icon with Animation */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <Box sx={{ fontSize: "0px" }}>
-                        {getWeatherIcon(
-                          weatherData.currentConditions.temp,
-                          weatherData.currentConditions.conditions
-                        )}
-                      </Box>
-                    </motion.div>
-
-            {/* Humidity & Wind */}
-            <Grid container justifyContent="space-between" alignItems="center" sx={{ mt: 2, px: 2 }}>
-              <Grid item xs={6}>
-                <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <WiHumidity size={40} color="blue" />
-                    <Typography variant="body2">
-                      <strong>Humidity:</strong> {weatherData.currentConditions.humidity}%
-                    </Typography>
-                  </Box>
-                </motion.div>
-              </Grid>
-              <Grid item xs={6}>
-                <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <WiStrongWind size={40} color="gray" />
-                    <Typography variant="body2">
-                      <strong>Wind:</strong> {weatherData.currentConditions.windspeed} km/h
-                    </Typography>
-                  </Box>
-                </motion.div>
-              </Grid>
-            </Grid>
-
-                    {/* ✅ Next 5 Hours Forecast */}
-                    <Typography variant="h6" sx={{ mt: 3, fontWeight: "bold" }}>
-                      Next 5 Hours Forecast
-                    </Typography>
+                {/* Top-right weather section */}
+                <Box sx={{ position: "absolute", top: 20, right: 20 }}>
+                  {/* ✅ Temperature with Animation */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
                     <Box
                       sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        overflowX: "auto",
-                        whiteSpace: "nowrap",
-                        gap: "15px",
-                        padding: "10px 0",
+                        fontSize: "32px",
+                        fontWeight: "bold",
+                        display: "inline-block",
+                        color: theme.palette.text.primary,
                       }}
                     >
-                      {getNextHours(weatherData?.days?.[0]?.hours).map((hour, index, array) => {
-                        return (
-                          <motion.div
-                            key={index}
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ duration: 0.3 }}
-                            style={{ textAlign: "center", padding: "0 10px", position: "relative" }}
-                          >
-                            {/* ✅ Weather Icon Animation */}
-                            <motion.div
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.5 }}
-                            >
-                              {getWeatherIcon(hour.temp, hour.conditions)}
-                            </motion.div>
-
-                            {/* ✅ Time and Temperature */}
-                            <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>
-                              {hour.datetime}
-                            </Typography>
-                            <Typography sx={{ fontSize: "14px" }}>{hour.temp.toFixed(1)}°C</Typography>
-
-                            {/* Vertical Divider (Except Last Item) */}
-                            {index !== array.length - 1 && (
-                              <Box
-                                sx={{
-                                  width: "2px",
-                                  height: "50px",
-                                  backgroundColor: "#ddd",
-                                  position: "absolute",
-                                  right: "-10px",
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                }}
-                              />
-                            )}
-                          </motion.div>
-                        );
-                      })}
+                      <Typography variant="h6" fontWeight="bold">
+                        {weatherData?.currentConditions?.conditions}
+                      </Typography>
+                      {weatherData?.currentConditions?.temp.toFixed(1)}°C
                     </Box>
+                  </motion.div>
+
+                  {/* ✅ Weather Icon with Animation */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <Box sx={{ fontSize: "0px" }}>
+                      {getWeatherIcon(
+                        weatherData?.currentConditions?.temp,
+                        weatherData?.currentConditions?.conditions
+                      )}
+                    </Box>
+                  </motion.div>
+
+                  {/* ✅ Humidity and Wind Speed */}
+                  <Grid container sx={{ mt: 1 }}>
+                    <Grid item xs={6}>
+                      <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <WiHumidity size={40} color="blue" />
+                          <Typography variant="body2">
+                            {weatherData?.currentConditions?.humidity}%
+                          </Typography>
+                        </Box>
+                      </motion.div>
+                    </Grid>
+
+                    <Grid item xs={6}>
+                      <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <WiStrongWind size={40} color="gray" />
+                          <Typography variant="body2">
+                            {weatherData?.currentConditions?.windspeed} km/h
+                          </Typography>
+                        </Box>
+                      </motion.div>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* ✅ Current Condition */}
+                <Box sx={{ position: "relative" }}>
+                  <Box sx={{ position: "absolute", top: 20, left: 20, textAlign: "left" }}>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      👋 Welcome Back
+                    </Typography>
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        fontWeight: "bold",
+                        mt: 0.5,
+                        fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.8rem' },
+                      }}
+                    >
+                      {projectName}
+                    </Typography>
                   </Box>
-                ) : (
-                  <Typography>Loading weather data...</Typography>
-                )}
+                </Box>
               </Box>
             </motion.div>
           </Grid>
-
-
-
-
-
-
-          {/* Wlcm to user */}
-          <Grid item xs={12}>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: theme.palette.background.paper,
-                p: '20px',
-                borderRadius: '10px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                border: '1px solid #ddd',
-                flexWrap: 'wrap',
-                gap: '20px',
-              }}
-            >
-              {/* Left Side: Welcome Message */}
-              <Box sx={{ textAlign: 'left', flex: 1, minWidth: '250px' }}>
-                <Typography variant="h5" fontWeight="bold">
-                  Gateway Dashboard
-                </Typography>
-              </Box>
-
-              {/* Right Side: Gateway Selection */}
-              <Box sx={{ flex: 1, minWidth: '250px' }}>
-                <InputLabel id="gateway-label" sx={{ color: 'grey', fontWeight: 'bold' }}>
-                  {/* ✅ Grey label */}
-                  Select Gateway
-                </InputLabel>
-                <FormControl fullWidth>
-                  <Select
-                    label="gateway-label"
-                    id="gateway-select"
-                    value={selectedGatewayForDropDown}
-                    onChange={handleGatewayChange}
-                  >
-                    {dropdownGateways.length > 0 ? (
-                      dropdownGateways.map((gw) => (
-                        <MenuItem key={gw.mac_address} value={gw.gateway_name}>
-                          {gw.gateway_name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No Gateways Available</MenuItem>
-                    )}
-                  </Select>
-                </FormControl>
-              </Box>
-              <Box>
-                {role === 'user' && <DeployGateway />}
-              </Box>
-            </Box>
-          </Grid>
-
           {/* ✅ MODAL for Detailed Weather Info */}
           <Modal open={modalOpen} onClose={handleClose}>
             <Box
@@ -826,7 +770,7 @@ const ProjectManager = () => {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: { xs: '90%', sm: '50%', md: '40%' },
+                width: { xs: '90%', sm: '70%', md: '70%' }, // Larger width
                 background: theme.palette.background.paper,
                 borderRadius: '10px',
                 boxShadow: 24,
@@ -836,7 +780,7 @@ const ProjectManager = () => {
                 textAlign: 'center',
               }}
             >
-              <Typography variant="h5" gutterBottom style={{ marginBottom: '20px' }}>
+              <Typography variant="h6" sx={{ fontWeight: "bold" }} gutterBottom style={{ marginBottom: '20px' }}>
                 Weather Details
               </Typography>
 
@@ -844,50 +788,102 @@ const ProjectManager = () => {
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <Typography variant="body1">
-                    🌡 Temperature: {weatherData.currentConditions.temp.toFixed(1)}°C
+                    <b> 🌡 Temperature: </b>{weatherData.currentConditions.temp.toFixed(1)}°C
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body1">
-                    🌥 Conditions: {weatherData.currentConditions.conditions}
+                    <b>🌥 Conditions:</b>  {weatherData.currentConditions.conditions}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body1">
-                    💧 Humidity: {weatherData.currentConditions.humidity}%
+                    <b>💧 Humidity: </b> {weatherData.currentConditions.humidity}%
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body1">
-                    💨 Wind Speed: {weatherData.currentConditions.windspeed} km/h
+                    <b>💨 Wind Speed:</b>   {weatherData.currentConditions.windspeed} km/h
                   </Typography>
                 </Grid>
               </Grid>
 
+              {/* ✅ Weather Icon for Current Conditions */}
+              <Box sx={{ mt: 2 }}>
+                {weatherData.currentConditions.conditions === 'Clear' && (
+                  <WiDaySunny size={50} color="orange" />
+                )}
+                {weatherData.currentConditions.conditions === 'Rain' && (
+                  <WiRain size={50} color="blue" />
+                )}
+                {weatherData.currentConditions.conditions === 'Cloudy' && (
+                  <WiCloudy size={50} color="gray" />
+                )}
+                {weatherData.currentConditions.conditions === 'Windy' && (
+                  <WiStrongWind size={50} color="gray" />
+                )}
+              </Box>
+
               {/* ✅ Next 7 Days Forecast */}
-              <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+              <Typography variant="h6" sx={{ mt: 3, mb: 2, fontWeight: "bold" }}>
                 7-Day Forecast
               </Typography>
-              <Grid container spacing={2}>
-                {weatherData.days.slice(0, 7).map((day, index) => (
-                  <Grid item xs={12} sm={4} key={index}>
-                    <Box
-                      sx={{
-                        p: 2,
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        textAlign: 'center',
-                        background: theme.palette.background.paper,
-                      }}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  overflowX: "auto",
+                  whiteSpace: "nowrap",
+                  gap: "15px",
+                  padding: "10px 0",
+                }}
+              >
+                {weatherData.days.slice(1, 8).map((day, index, array) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ textAlign: "center", padding: "0 10px", position: "relative" }}
+                  >
+                    {/* ✅ Weather Icon Animation */}
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
                     >
-                      <Typography variant="body1">{day.datetime}</Typography>
-                      <Typography variant="body2">
-                        🌡 {(((day.temp - 32) * 5) / 9).toFixed(1)}°C
-                      </Typography>
-                    </Box>
-                  </Grid>
+                      {getWeatherIcon(day.temp, day.conditions)}
+                    </motion.div>
+
+                    {/* ✅ Date and Temperature */}
+                    <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>
+                      {new Date(day.datetime).toLocaleDateString("en-US", { weekday: "short" })}
+                    </Typography>
+                    <Typography sx={{ fontSize: "12px", color: "gray" }}>
+                      {day.datetime}
+                    </Typography>
+                    <Typography sx={{ fontSize: "14px" }}>
+                      {((day.tempmax - 32) * 5 / 9).toFixed(1)}° / {((day.tempmin - 32) * 5 / 9).toFixed(1)}°C
+                    </Typography>
+
+                    {/* Vertical Divider (Except Last Item) */}
+                    {index !== array.length - 1 && (
+                      <Box
+                        sx={{
+                          width: "2px",
+                          height: "50px",
+                          backgroundColor: "#ddd",
+                          position: "absolute",
+                          right: "-10px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                        }}
+                      />
+                    )}
+                  </motion.div>
                 ))}
-              </Grid>
+              </Box>
+
 
               {/* ✅ Close Button */}
               <Box sx={{ textAlign: 'center', mt: 3 }}>
@@ -897,331 +893,548 @@ const ProjectManager = () => {
               </Box>
             </Box>
           </Modal>
-        </Grid>
 
-        <Grid container spacing={1} mt={1}>
-          {/* ✅ First Box - Display Selected Gateway Data in Organizational Tree View */}
-          {selectedGatewayForDropDown && (
-            <Grid item xs={12}>
+
+
+
+
+
+
+
+          {/* Wlcm to user */}
+          <Grid item xs={12}>
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      background: theme.palette.background.paper,
+      py: { xs: '10px', md: '20px' },
+      px: { xs: '5px', md: '10px' },
+      borderRadius: '10px',
+      boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+      border: '1px solid #ddd',
+      flexWrap: 'wrap',
+      gap: { xs: '10px', md: '20px' },
+    }}
+  >
+    {/* Right Side: Gateways List */}
+    <Box sx={{ flex: 1, minWidth: '300px' }}>
+      <InputLabel sx={{ 
+        color: 'grey', 
+        fontWeight: 'bold', 
+        mb: 1,
+        fontSize: { xs: '0.9rem', sm: '1rem' }
+      }}>
+        Gateways
+      </InputLabel>
+
+      <Box sx={{ width: '100%' }}>
+        {role === 'user' && <DeployGateway />}
+      </Box>
+      
+      <Box sx={{ overflowY: 'auto', overflowX: 'hidden' }}>
+        {dropdownGateways.length > 0 ? (
+          dropdownGateways.map((gw) => (
+            <Box key={gw.mac_address} sx={{ mb: 1 }}>
+              {/* Gateway Header */}
               <Box
                 sx={{
-                  p: '10px',
-                  pt: "20px",
-                  borderRadius: '10px',
-                  boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
-                  background: theme.palette.background.paper,
-                  textAlign: 'center',
+                  background: theme.palette.background.default,
+                  borderRadius: '8px',
+                  px: { xs: '8px', md: '12px' },
+                  py: { xs: '4px', md: '6px' },
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  width: '100%',
-                  overflowX: 'auto',
+                  flexDirection: 'column'
                 }}
               >
-                {gateways
-                  .filter((gw) => gw.gateway_name === selectedGatewayForDropDown)
-                  .map((gw, index) => (
-                    <Tree
-                      lineWidth={'2px'}
-                      lineColor={'green'} // ✅ Green tree lines
-                      lineBorderRadius={'10px'}
-                      label={
-                        <TreeBox
-                          purpose="Gateway"
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography variant="subtitle2" fontWeight="600" sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+                    {gw.gateway_name}
+                  </Typography>
 
-                          label={
-                            <>
-                              {' '}
-                              Gateway: {gw.gateway_name} <br /> Mac Address: {gw.mac_address} <br />{' '}
-                              Deployed Status: {gw.deploy_status}{' '}
-                            </>
-                          }
-                        />
+                  <IconButton size="small" onClick={() => toggleGatewayExpansion(gw.gateway_name)}>
+                    {expandedGateways[gw.gateway_name] ? 
+                      <ExpandLess fontSize="small" /> : 
+                      <ExpandMore fontSize="small" />}
+                  </IconButton>
+                </Box>
+
+                {/* Expanded Content */}
+                {expandedGateways[gw.gateway_name] && (
+                  <Box sx={{ mt: 1, width: '100%' }}>
+                    {/* Gateway Details */}
+                    <TreeBox
+                      purpose="Gateway"
+                      label={
+                        <>
+                          Gateway: {gw.gateway_name} <br />
+                          Mac Address: {gw.mac_address}
+                        </>
                       }
-                    >
-                      <TreeNode key={index}>
-                        {/* ✅ Display Metadata in Tree */}
-                        {metadataData[gw.gateway_name] ? (
-                          <TreeNode>
-                            {metadataData[gw.gateway_name].ports.map((port, portIndex) => (
-                              <TreeNode
-                                key={portIndex}
-                                label={
-                                  <TreeBox label={`${port.port_name}`} purpose={port.port_name} />
-                                }
-                              >
-                                {port.analyzers.map((analyzer, analyzerIndex) => (
-                                  <TreeNode
-                                    key={analyzerIndex}
-                                    label={
-                                      <TreeBox
-                                        purpose="Analyzer"
-                                        label={
-                                          <>
-                                            {' '}
-                                            {analyzer.name} ({analyzer.type}) <br /> Status:{' '}
-                                            {analyzer.status ? 'Active' : 'Inactive'}{' '}
-                                          </>
-                                        }
-                                      />
-                                    }
+                    />
+
+                            {/* Ports and Analyzers */}
+                            {metadataData[gw.gateway_name] ? (
+                              <Box
+  sx={{
+    display: 'flex',
+    flexDirection: { xs: 'column', sm: 'row' },
+    justifyContent: 'flex-start',
+    mt: 2,
+    gap: '2px',
+    overflowX: 'auto',
+    width: '100%',
+    '&::-webkit-scrollbar': {
+      height: '6px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: '#888',
+      borderRadius: '10px',
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: '#f0f0f0',
+    },
+  }}
+>
+
+
+                                {metadataData[gw.gateway_name].ports.map((port, portIndex) => (
+                                  <Box
+                                  key={portIndex}
+                                  sx={{
+                                    minWidth: { xs: '100%', sm: '280px' },
+                                    background: theme.palette.background.default,
+                                    borderRadius: '12px',
+                                    boxShadow: '0px 4px 10px rgba(0,0,0,0.1)',
+                                    p: 2,
+                                    m: { xs: '4px 0', sm: 1 },
+                                    position: 'relative',
+                                  }}
+                                >
+                                  {/* Port Name Sticker */}
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      top: '-8px',
+                                      
+                                      right: { xs: '0px', sm: '-10px' },
+                                      background: `linear-gradient(135deg,#E8489E 0%,#E62E8E 20%,#D32999 40%, #A31DB3 60%,#9F1CB5 80%, #8723C1 100%)`,
+                                      color: 'white',
+                                      fontWeight: 'bold',
+                                      fontSize: { xs: '10px', sm: '12px' },
+                                      px: 1.5,
+                                      py: 0.5,
+                                      borderRadius: '6px',
+                                    }}
                                   >
+                                    {port.port_name}
+                                  </Box>
+
+
+
+
+                                    {/* ✅ Analyzer Boxes under this Port */}
+
+
+
+                                    {port.analyzers.map((analyzer, analyzerIndex) => {
+                                      const analyzerKey = `${gw.gateway_name}-${port.port_name}-${analyzer.name}`;
+                                      const isExpanded = expandedAnalyzers[analyzerKey] || false;
+
+                                      return (
+                                        <Box key={analyzerIndex} sx={{ mt: 2, width: '100%' }}>
+                                  <TreeBox
+                                    purpose="Analyzer"
+                                    label={
+                                      <Box sx={{ width: '100%' }}>
+                                        {/* Top Row */}
+                                        <Box sx={{ 
+                                          display: 'flex', 
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          gap: 1
+                                        }}>
+                                          <Typography 
+                                            variant="subtitle1" 
+                                            fontWeight="bold"
+                                            sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
+                                          >
+                                            {analyzer.name}
+                                          </Typography>
+                                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Box
+                                              sx={{
+                                                width: 8,
+                                                height: 8,
+                                                borderRadius: '50%',
+                                                backgroundColor: analyzer.status ? 'green' : 'red',
+                                              }}
+                                            />
+                                            <IconButton size="small" sx={{ p: 0 }}>
+                                              {isExpanded ? 
+                                                <ExpandLess fontSize="small" /> : 
+                                                <ExpandMore fontSize="small" />}
+                                            </IconButton>
+                                          </Box>
+                                        </Box>
+
+                                                {/* Bottom Row: First 2 values + Type Icon */}
+                                                <Box sx={{ 
+                                          display: 'flex', 
+                                          justifyContent: 'space-between', 
+                                          alignItems: 'center', 
+                                          mt: 1, 
+                                          gap: 1 
+                                        }}>                                                   {/* Value Fields */}
+                                          {analyzer.values.slice(0, 2).map((val, idx) => (
+                                            <Box 
+                                              key={idx} 
+                                              sx={{ 
+                                                flex: 1,
+                                                textAlign: 'left',
+                                                overflow: 'hidden'
+                                              }}
+                                            >
+                                              <Typography 
+                                                variant="body2" 
+                                                fontWeight="600"
+                                                sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
+                                              >
+                                                {val.name}
+                                              </Typography>
+                                              <Typography 
+                                                variant="body2"
+                                                sx={{ 
+                                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                                  whiteSpace: 'nowrap',
+                                                  textOverflow: 'ellipsis',
+                                                  overflow: 'hidden'
+                                                }}
+                                              >
+                                                {val.value}
+                                              </Typography>
+                                            </Box>
+                                          ))}
+                                                  {/* Analyzer Type Icon */}
+                                                  <Box>
+                                                    {analyzer.type === 'grid' && (
+                                                      <img src="https://mexemai.com/bucket/ems/image/gridcolor.png" alt="Grid Icon" style={{ height: 22 }} />
+                                                    )}
+                                                    {analyzer.type === 'Power' && (
+                                                      <img src="https://mexemai.com/bucket/ems/image/Untitled-5.png" alt="Power Icon" style={{ height: 22 }} />
+                                                    )}
+                                                    {analyzer.type === 'solar' && (
+                                                      <img src="https://mexemai.com/bucket/ems/image/solarcolored.png" alt="Genset Icon" style={{ height: 22 }} />
+                                                    )}
+                                                    {analyzer.type === 'generator' && (
+                                                      <img src="https://mexemai.com/bucket/ems/image/generator.png" alt="Load Icon" style={{ height: 22 }} />
+                                                    )}
+                                                  </Box>
+
+
+                                                </Box>
+                                                <hr style={{ width: '100%', marginBottom: '0.5rem' }} />
+
+                                                {isExpanded && (
+                                                  <Box
+                                                  sx={{
+                                                    p: 1,
+                                                    display: 'flex',
+                                                    flexDirection: 'row',
+                                                    flexWrap: 'wrap',
+                                                    gap: '8px',
+                                                    mt: 1,
+                                                  }}
+                                                >
+
+
+                                                    {analyzer.values.map((val, valIndex) => (
+                                                       <Box
+                                                       key={valIndex}
+                                                       sx={{
+                                                         flex: '1 1 45%',
+                                                         minWidth: '120px',
+                                                         p: '5px',
+                                                         backgroundColor: theme.palette.background.default,
+                                                         borderRadius: '5px',
+                                                         cursor: 'pointer',
+                                                         '&:hover': {
+                                                           transform: 'translateY(-2px)',
+                                                           boxShadow: 2
+                                                         }
+                                                       }}
+                                                       onClick={() => navigateToChart(val.name, gw.gateway_name)}
+                                                     >
+                                                        <Grid display="flex" flexDirection="row" columnGap={1}>
+                                                          <Typography variant="subtitle2" display="flex" flexDirection="column">
+                                                            <Box><b>Name</b></Box>
+                                                            <Box>{val.name}</Box>
+                                                          </Typography>
+                                                          <Divider orientation="vertical" flexItem />
+                                                          <Typography variant="subtitle2" display="flex" flexDirection="column">
+                                                            <Box><b>Value</b></Box>
+                                                            <Box>{val.value}</Box>
+                                                          </Typography>
+                                                          <Divider orientation="vertical" flexItem />
+                                                          <Typography variant="subtitle2" display="flex" flexDirection="column">
+                                                            <Box><b>Address</b></Box>
+                                                            <Box>{val.address}</Box>
+                                                          </Typography>
+                                                        </Grid>
+                                                      </Box>
+                                                    ))}
+                                                  </Box>
+                                                )}
+                                              </Box>
+                                            }
+                                            onClick={() => toggleAnalyzer(analyzerKey)}
+                                            sx={{
+                                              cursor: 'pointer',
+                                              '&:hover': {
+                                                backgroundColor: theme.palette.action.hover
+                                              }
+                                            }}
+
+                                          />
+
+
+
+
+
+
+
+                                        </Box>
+                                      );
+                                    })}
+
+
+
+
+                                  </Box>
+                                ))}
+
+                              </Box>
+                            ) : (
+                              <TreeBox label="No metadata available." />
+                            )}
+
+                            <Grid container spacing={2} mt={2}>
+                              {/* ✅ First Box - Only Solar Cost Bar Charts */}
+                              <Grid item xs={12} md={6} height={450}>
+                                {expandedGateways && (
+                                  <Box
+                                    sx={{
+                                      background: theme.palette.background.paper,
+                                      p: { xs: 2, sm: 3 },
+                                      borderRadius: '10px',
+                                      boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                                      border: '1px solid #ddd',
+                                      textAlign: 'center',
+                                      height: '100%',
+                                    }}
+                                  >
+                                    <Grid
+                                      container
+                                      justifyContent="center"
+                                      alignItems="center"
+                                    >
+                                      <Grid item xs={12}>
+                                        <CostBarGraph />
+                                      </Grid>
+                                    </Grid>
+                                  </Box>
+                                )}
+                              </Grid>
+
+
+                              {/* ✅ Second Box - ReactFlow (UNCHANGED) */}
+                              <Grid item xs={12} md={6} height={450}>
+                                {expandedGateways && (
+                                  <Box
+                                    sx={{
+                                      background: theme.palette.background.paper,
+                                      p: '20px',
+                                      borderRadius: '10px',
+                                      boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                                      border: '1px solid #ddd',
+                                      textAlign: 'center',
+                                      height: '100%',
+                                    }}
+                                  >
+                                    <ReactFlow
+                                      nodes={newNodes}
+                                      edges={newEdges}
+                                      onNodesChange={onNodesChange}
+                                      onEdgesChange={onEdgesChange}
+                                      nodeTypes={nodeTypes}
+                                      edgeTypes={edgeTypes}
+                                      fitView={true}
+                                      zoomOnScroll={true}
+                                      panOnScroll={false}
+                                      panOnDrag={false}
+                                      nodesDraggable={false}
+                                      proOptions={{ hideAttribution: true }}
+                                    />
+                                  </Box>
+                                )}
+                              </Grid>
+                            </Grid>
+                            <Grid container spacing={2} mt={1}>
+                              {/* First grpagh Solar USage */}
+                              <Grid item xs={12} md={6}>
+                                {expandedGateways && (
+                                  <>
+                                    {/* Card only for heading */}
                                     <Box
                                       sx={{
-                                        p: '10px',
-                                        borderRadius: '8px',
-                                        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
                                         background: theme.palette.background.paper,
+                                        p: '20px',
+                                        borderRadius: '10px',
+                                        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                                        border: '1px solid #ddd',
                                         textAlign: 'center',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '10px',
                                       }}
                                     >
-                                      {analyzer.values.map((val, valIndex) => (
-                                        <Box
-                                          key={valIndex}
-                                          sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'flex-start',
-                                            padding: '5px',
-                                            backgroundColor: theme.palette.background.default,
-                                            borderRadius: '5px',
-                                            width: '100%',
-                                            cursor: 'pointer',
-                                          }}
-                                          onClick={() => navigateToChart(val.name, gw.gateway_name)}
-                                        >
-                                          <Grid
-                                            display={'flex'}
-                                            flexDirection={'row'}
-                                            columnGap={1}
-                                          >
-                                            <Typography
-                                              variant="subtitle1"
-                                              fontWeight="bold"
-                                              display={'flex'}
-                                              flexDirection={'Column'}
-                                            >
-                                              <Box> Name </Box> <Box> {val.name} </Box>
-                                            </Typography>
-                                            <Divider orientation="vertical" flexItem />
-                                            <Typography
-                                              variant="subtitle1"
-                                              fontWeight="bold"
-                                              display={'flex'}
-                                              flexDirection={'Column'}
-                                            >
-                                              <Box> Value </Box> <Box> {val.value} </Box>
-                                            </Typography>
-                                            <Divider orientation="vertical" flexItem />
-                                            <Typography
-                                              variant="subtitle1"
-                                              fontWeight="bold"
-                                              display={'flex'}
-                                              flexDirection={'Column'}
-                                            >
-                                              <Box> Address </Box> <Box> {val.address} </Box>
-                                            </Typography>
-                                          </Grid>
-                                        </Box>
-                                      ))}
+                                      <Typography textAlign="center" fontWeight="bold">
+                                        Solar Production
+                                      </Typography>
+                                      <Box mt={2}>
+                                        <SolarUsage />
+                                      </Box>
                                     </Box>
-                                  </TreeNode>
-                                ))}
-                              </TreeNode>
-                            ))}
-                          </TreeNode>
-                        ) : (
-                          <TreeNode label={<TreeBox label="No metadata available." />} />
+
+                                    {/* Graph rendered outside the card */}
+
+                                  </>
+                                )}
+                              </Grid>
+                              {/* First grpagh Grid USage */}
+                              <Grid item xs={12} md={6}>
+                                {expandedGateways && (
+                                  <>
+                                    {/* Card only for heading */}
+                                    <Box
+                                      sx={{
+                                        background: theme.palette.background.paper,
+                                        p: '20px',
+                                        borderRadius: '10px',
+                                        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                                        border: '1px solid #ddd',
+                                        textAlign: 'center',
+                                      }}
+                                    >
+                                      <Typography textAlign="center" fontWeight="bold">
+                                        Load Consumed
+                                      </Typography>
+                                      <Box mt={2}>
+                                        <GridUsage />
+                                      </Box>
+                                    </Box>
+
+                                    {/* Graph rendered outside the card */}
+
+                                  </>
+                                )}
+                              </Grid>
+                              {/* First grpagh Grid In */}
+                              <Grid item xs={12} md={6}>
+                                {expandedGateways && (
+                                  <>
+                                    {/* Card only for heading */}
+                                    <Box
+                                      sx={{
+                                        background: theme.palette.background.paper,
+                                        p: '20px',
+                                        borderRadius: '10px',
+                                        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                                        border: '1px solid #ddd',
+                                        textAlign: 'center',
+                                      }}
+                                    >
+                                      <Typography textAlign="center" fontWeight="bold">
+                                        Grid In
+                                      </Typography>
+                                      <Box mt={2}>
+                                        <GridIn />
+                                      </Box>
+                                    </Box>
+
+                                    {/* Graph rendered outside the card */}
+
+                                  </>
+                                )}
+                              </Grid>
+                              {/* First grpagh Grid out */}
+                              <Grid item xs={12} md={6}>
+                                {expandedGateways && (
+                                  <>
+                                    {/* Card only for heading */}
+                                    <Box
+                                      sx={{
+                                        background: theme.palette.background.paper,
+                                        p: '20px',
+                                        borderRadius: '10px',
+                                        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                                        border: '1px solid #ddd',
+                                        textAlign: 'center',
+                                      }}
+                                    >
+                                      <Typography textAlign="center" fontWeight="bold">
+                                        Grid Out
+                                      </Typography>
+                                      <Box mt={2}>
+                                        <GridOut />
+                                      </Box>
+                                    </Box>
+
+                                    {/* Graph rendered outside the card */}
+
+                                  </>
+                                )}
+                              </Grid>
+
+
+
+                            </Grid>
+                          </Box>
+
                         )}
-                      </TreeNode>
-                    </Tree>
-                  ))}
+</Box>
+
+
+
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body2">No gateways available</Typography>
+                  )}
+                </Box>
               </Box>
-            </Grid>
-          )}
-        </Grid>
 
 
-        <Grid container spacing={2} mt={2}>
-          {/* ✅ First Box - Only Solar Cost Bar Charts */}
-          <Grid item xs={12} md={6} height={450}>
-  {selectedGatewayForDropDown && (
-    <Box
-      sx={{
-        background: theme.palette.background.paper,
-        p: { xs: 2, sm: 3 },
-        borderRadius: '10px',
-        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #ddd',
-        textAlign: 'center',
-        height: '100%',
-      }}
-    >
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Grid item xs={12}>
-          <CostBarGraph />
-        </Grid>
-      </Grid>
-    </Box>
-  )}
-</Grid>
-
-
-          {/* ✅ Second Box - ReactFlow (UNCHANGED) */}
-          <Grid item xs={12} md={6} height={450}>
-            {selectedGatewayForDropDown && (
-              <Box
-                sx={{
-                  background: theme.palette.background.paper,
-                  p: '20px',
-                  borderRadius: '10px',
-                  boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                  border: '1px solid #ddd',
-                  textAlign: 'center',
-                  height: '100%',
-                }}
-              >
-                <ReactFlow
-                  nodes={newNodes}
-                  edges={newEdges}
-                  onNodesChange={onNodesChange}
-                  onEdgesChange={onEdgesChange}
-                  nodeTypes={nodeTypes}
-                  edgeTypes={edgeTypes}
-                  fitView={true}
-
-                  zoomOnScroll={true}
-                  panOnScroll={false}
-                  panOnDrag={false}
-                  nodesDraggable={false}
-                  proOptions={{ hideAttribution: true }}
-                />
-              </Box>
-            )}
+            </Box>
           </Grid>
-        </Grid>
-        <Grid container spacing={2} mt={1}>
-          {/* First grpagh Solar USage */}
-          <Grid item xs={12} md={6}>
-            {selectedGatewayForDropDown && (
-              <>
-                {/* Card only for heading */}
-                <Box
-                  sx={{
-                    background: theme.palette.background.paper,
-                    p: '20px',
-                    borderRadius: '10px',
-                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid #ddd',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Typography textAlign="center" fontWeight="bold">
-                    Solar Production
-                  </Typography>
-                  <Box mt={2}>
-                    <SolarUsage />
-                  </Box>
-                </Box>
 
-                {/* Graph rendered outside the card */}
 
-              </>
-            )}
-          </Grid>
-          {/* First grpagh Grid USage */}
-          <Grid item xs={12} md={6}>
-            {selectedGatewayForDropDown && (
-              <>
-                {/* Card only for heading */}
-                <Box
-                  sx={{
-                    background: theme.palette.background.paper,
-                    p: '20px',
-                    borderRadius: '10px',
-                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid #ddd',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Typography textAlign="center" fontWeight="bold">
-                    Load Consumed
-                  </Typography>
-                  <Box mt={2}>
-                    <GridUsage />
-                  </Box>
-                </Box>
 
-                {/* Graph rendered outside the card */}
 
-              </>
-            )}
-          </Grid>
-          {/* First grpagh Grid In */}
-          <Grid item xs={12} md={6}>
-            {selectedGatewayForDropDown && (
-              <>
-                {/* Card only for heading */}
-                <Box
-                  sx={{
-                    background: theme.palette.background.paper,
-                    p: '20px',
-                    borderRadius: '10px',
-                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid #ddd',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Typography textAlign="center" fontWeight="bold">
-                    Grid In
-                  </Typography>
-                  <Box mt={2}>
-                    <GridIn />
-                  </Box>
-                </Box>
 
-                {/* Graph rendered outside the card */}
-
-              </>
-            )}
-          </Grid>
-          {/* First grpagh Grid out */}
-          <Grid item xs={12} md={6}>
-            {selectedGatewayForDropDown && (
-              <>
-                {/* Card only for heading */}
-                <Box
-                  sx={{
-                    background: theme.palette.background.paper,
-                    p: '20px',
-                    borderRadius: '10px',
-                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid #ddd',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Typography textAlign="center" fontWeight="bold">
-                    Grid Out
-                  </Typography>
-                  <Box mt={2}>
-                    <GridOut />
-                  </Box>
-                </Box>
-
-                {/* Graph rendered outside the card */}
-
-              </>
-            )}
-          </Grid>
 
 
 
         </Grid>
+
+
       </Grid>
     </Box>
   )

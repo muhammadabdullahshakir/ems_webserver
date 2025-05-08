@@ -33,11 +33,10 @@ const DashBoard = () => {
   const [totalAdmins, setTotalAdmins] = useState([])
   const [adminDetails, setAdminDetails] = useState([]);
   const [superAdminTotalProjectCount, setSuperAdminTotalProjectCount] = useState(0)
-  const [allUsers, setAllUsers] = useState(0)
-  const [allProjects, setAllProjects] = useState(0)
+  const [allUsers, setAllUsers] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
   const [enrichedAdminDetails, setEnrichedAdminDetails] = useState([]);
-
-      
+  
       
   
   
@@ -140,15 +139,15 @@ const DashBoard = () => {
   }, []);
 
   useEffect(() => {
-    if (adminDetails.length && allUsers.length && allProjects.length) {
+    if (adminDetails.length) {
       const updatedAdminDetails = adminDetails.map((admin) => {
-        const totalUsers = allUsers.filter(
+        const totalUsers = allUsers?.filter(
           (user) => String(user.created_by_id) === String(admin.id)
-        ).length;
+        ).length || 0;
   
-        const totalProjects = allProjects.filter(
+        const totalProjects = allProjects?.filter(
           (project) => String(project.created_by_id) === String(admin.id)
-        ).length;
+        ).length || 0;
   
         return {
           ...admin,
@@ -160,6 +159,7 @@ const DashBoard = () => {
       setEnrichedAdminDetails(updatedAdminDetails);
     }
   }, [adminDetails, allUsers, allProjects]);
+  
   
   
 
@@ -349,18 +349,23 @@ const DashBoard = () => {
         <TableCell style={{ fontWeight: 'bold' }}>Total Projects</TableCell>
       </TableRow>
     </TableHead>
-    <TableBody>
-    {enrichedAdminDetails.map((admin, index) => (
-  <TableRow key={admin.id}>
-    <TableCell>{index + 1}</TableCell>
-    <TableCell>{admin.username}</TableCell> {/* This will now show Username correctly */}
-    <TableCell>{admin.email}</TableCell>
-    <TableCell>{admin.totalUsers}</TableCell>
-    <TableCell>{admin.totalProjects}</TableCell>
-  </TableRow>
-))}
-
+<TableBody>
+  
+  {enrichedAdminDetails
+    .filter((admin) =>
+      admin.username?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .map((admin, index) => (
+      <TableRow key={admin.id}>
+        <TableCell>{index + 1}</TableCell>
+        <TableCell>{admin.username || 'N/A'}</TableCell>
+        <TableCell>{admin.email || 'N/A'}</TableCell>
+        <TableCell>{admin.totalUsers || 0}</TableCell>
+        <TableCell>{admin.totalProjects || 0 }</TableCell>
+      </TableRow>
+    ))}
 </TableBody>
+
 
 
   </Table>

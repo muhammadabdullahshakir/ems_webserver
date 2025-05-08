@@ -200,7 +200,16 @@ function HourlyChart({ title, data, yAxisLabel }) {
     credits: { enabled: false },
     plotOptions: {
       line: {
-        marker: { enabled: true },
+        marker: {
+          enabled: false,
+          states: {
+            hover: {
+              enabled: true,
+              radius: 5
+            }
+          }
+        },
+        
         animation: { duration: 600 }  // ✅ Smooth line animation
       },
       series: {

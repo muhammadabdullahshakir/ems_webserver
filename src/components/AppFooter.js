@@ -10,7 +10,7 @@ const AppFooter = () => {
   return (
     <CFooter className="px-4" style={{background : theme.palette.background.footer}}>
       <div className="ms-auto">
-        <span className="me-1" style={{color: theme.palette.text.TextColor}}>Powered by</span>
+        <span className="me-1" style={{color: '#ffffff'}}>Powered by </span>
         <a href="" target="_blank" rel="noopener noreferrer">
           MEXEMAI
         </a>

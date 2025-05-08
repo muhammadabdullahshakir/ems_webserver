@@ -7,6 +7,13 @@ import urls from '../../urls/urls'
 import CloseIcon from '@mui/icons-material/Close';
 import { saveUserToLocalStorage, getUserFromLocalStorage } from '../../data/localStorage';
 import axios from 'axios'
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import { useRef } from 'react';
+// Add this import at the top with other imports
+import 'leaflet/dist/leaflet.css';
+
+
 
 
 
@@ -31,6 +38,8 @@ const AddProject = () => {
   const [latitude, setLatitude] = useState('');
   const [address, setAddress] = useState('');
   const theme = useTheme()
+  const mapRef = useRef();
+
   const [errors, setErrors] = useState({
     projectName: '',
     longitude: '',
@@ -80,6 +89,32 @@ const AddProject = () => {
       console.error("Error Posting Project", error.response || error.message || error);
     }
   };
+
+  const LocationSelector = ({ latitude, longitude, setLatitude, setLongitude }) => {
+    useMapEvents({
+      click(e) {
+        setLatitude(e.latlng.lat.toFixed(6));
+        setLongitude(e.latlng.lng.toFixed(6));
+      },
+    });
+  
+    return null;
+  };
+
+  useEffect(() => {
+    if (open && mapRef.current) {
+      setTimeout(() => {
+        mapRef.current.invalidateSize();
+      }, 300); // wait for dialog to open and render fully
+    }
+  }, [open]);
+  
+  
+  const markerIcon = new L.Icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+  });
 
 
   const fetchProjects = async () => {
@@ -143,52 +178,101 @@ const AddProject = () => {
           <CloseIcon />
         </IconButton>
         <DialogContent dividers>
-          <Box display={"flex"} flexDirection={"column"} rowGap={2} width="100%">
-            <TextField
-              size="small"
-              fullWidth
-              label="Project Name"
-              variant="outlined"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              error={Boolean(errors.projectName)}
-              helperText={errors.projectName}
-            />
+  <Box display="flex" flexDirection="column" rowGap={2} width="100%">
+    <TextField
+      size="small"
+      fullWidth
+      label="Project Name"
+      variant="outlined"
+      value={projectName}
+      onChange={(e) => setProjectName(e.target.value)}
+      error={Boolean(errors.projectName)}
+      helperText={errors.projectName}
+    />
 
-            <TextField
-              size="small"
-              fullWidth
-              label="Longitude"
-              variant="outlined"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              error={Boolean(errors.longitude)}
-              helperText={errors.longitude}
-            />
+    <TextField
+      size="small"
+      fullWidth
+      label="Longitude"
+      variant="outlined"
+      value={longitude}
+      onChange={(e) => setLongitude(e.target.value)}
+      error={Boolean(errors.longitude)}
+      helperText={errors.longitude}
+    />
 
-            <TextField
-              size="small"
-              fullWidth
-              label="Latitude"
-              variant="outlined"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              error={Boolean(errors.latitude)}
-              helperText={errors.latitude}
-            />
+    <TextField
+      size="small"
+      fullWidth
+      label="Latitude"
+      variant="outlined"
+      value={latitude}
+      onChange={(e) => setLatitude(e.target.value)}
+      error={Boolean(errors.latitude)}
+      helperText={errors.latitude}
+    />
 
-            <TextField
-              size="small"
-              fullWidth
-              label="Address"
-              variant="outlined"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              error={Boolean(errors.address)}
-              helperText={errors.address}
-            />
-          </Box>
-        </DialogContent>
+    <TextField
+      size="small"
+      fullWidth
+      label="Address"
+      variant="outlined"
+      value={address}
+      onChange={(e) => setAddress(e.target.value)}
+      error={Boolean(errors.address)}
+      helperText={errors.address}
+    />
+
+    {/* Scrollable Map Box */}
+
+<Box
+  sx={{
+    mt: 2,
+    height: '320px',
+    border: '1px solid #ccc',
+    borderRadius: 2,
+    overflow: 'hidden',
+  }}
+>
+  <MapContainer
+    center={[
+      parseFloat(latitude) || 33.6844,
+      parseFloat(longitude) || 73.0479,
+    ]}
+    zoom={13}
+    scrollWheelZoom={true}
+    zoomControl={true}
+    style={{ height: '100%', width: '100%' }}
+    whenCreated={(mapInstance) => {
+      mapRef.current = mapInstance;
+      setTimeout(() => {
+        mapInstance.invalidateSize();
+      }, 0);
+    }}
+  >
+    <TileLayer
+      attribution=''
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    />
+    <LocationSelector
+      latitude={latitude}
+      longitude={longitude}
+      setLatitude={setLatitude}
+      setLongitude={setLongitude}
+    />
+    {latitude && longitude && (
+      <Marker
+        position={[parseFloat(latitude), parseFloat(longitude)]}
+        icon={markerIcon}
+      />
+    )}
+  </MapContainer>
+</Box>
+
+
+  </Box>
+</DialogContent>
+
         <DialogActions>
           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
             <Button
